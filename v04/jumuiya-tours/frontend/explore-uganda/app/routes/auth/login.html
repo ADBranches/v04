@@ -1,0 +1,58 @@
+<!-- # Create auth HTML pages
+cat > frontend/views/auth/login.html << 'EOF' -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Jumuiya Tours</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles/tailwind.css">
+</head>
+<body class="bg-safari-sand min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8 p-8">
+        <!-- Logo -->
+        <div class="text-center">
+            <div class="flex justify-center items-center space-x-2 mb-6">
+                <div class="w-12 h-12 bg-uganda-yellow rounded-full flex items-center justify-center">
+                    <span class="text-uganda-black font-bold text-xl">JT</span>
+                </div>
+                <span class="text-2xl font-display font-bold text-uganda-black">Jumuiya<span class="text-uganda-yellow">Tours</span></span>
+            </div>
+            <h2 class="text-3xl font-bold text-uganda-black">Welcome back</h2>
+            <p class="mt-2 text-gray-600">Sign in to your account</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="mt-8 space-y-6 bg-white p-6 rounded-2xl shadow-lg">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                <input id="email" name="email" type="email" required 
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-uganda-yellow focus:border-uganda-yellow">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input id="password" name="password" type="password" required 
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-uganda-yellow focus:border-uganda-yellow">
+            </div>
+
+            <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"></div>
+
+            <button type="submit" 
+                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-uganda-black bg-uganda-yellow hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-uganda-yellow transition-colors">
+                Sign in
+            </button>
+
+            <div class="text-center">
+                <p class="text-gray-600">
+                    Don't have an account? 
+                    <a href="/auth/register.html" class="font-medium text-uganda-yellow hover:text-yellow-400">Sign up</a>
+                </p>
+            </div>
+        </form>
+    </div>
+
+    <script type="module" src="/js/pages/auth/login.js"></script>
+</body>
+</html>

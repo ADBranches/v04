@@ -1,0 +1,38 @@
+{
+  "name": "jumuiya-tours-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Jumuiya Tours",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "db:reset": "node database/setup-reset.js",
+    "db:setup": "node database/setup.js",
+    "db:seed": "node database/seed.js",
+    "test:e2e": "NODE_OPTIONS='--experimental-vm-modules' jest --runInBand --detectOpenHandles"
+
+  },
+  "dependencies": {
+    "@prisma/client": "^6.17.1",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.1.4",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "multer": "^2.0.2",
+    "pg": "^8.11.0",
+    "require": "^2.4.20"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/supertest": "^6.0.3",
+    "jest": "^30.2.0",
+    "nodemon": "^3.0.1",
+    "prisma": "^6.17.1",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.5"
+  }
+}

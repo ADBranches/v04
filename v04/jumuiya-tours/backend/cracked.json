@@ -1,0 +1,10 @@
+[
+  {
+    "type": "WPA",
+    "date": 1760896311,
+    "essid": "Kambale Dev ",
+    "bssid": "96:62:73:80:CB:22",
+    "key": "iforgotit",
+    "handshake_file": "hs/handshake_KambaleDev_96-62-73-80-CB-22_2025-10-19T20-51-20.cap"
+  }
+]

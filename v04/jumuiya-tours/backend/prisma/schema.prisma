@@ -1,0 +1,247 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────────────────────────────────────────
+// ENUM DEFINITIONS — prevent typos in status fields
+// ───────────────────────────────────────────────────────────────
+enum GuideStatus {
+  unverified
+  pending
+  verified
+  suspended
+}
+
+enum DestinationStatus {
+  draft
+  pending
+  approved
+  rejected
+}
+
+enum ModerationStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id                        Int        @id @default(autoincrement())
+  email                     String     @unique
+  name                      String
+  role                      String     @default("user")
+  created_at                DateTime   @default(now())
+  updated_at                DateTime   @updatedAt
+  avatar_url                String?
+  bio                       String?
+  guide_status              String?    @default("unverified")
+  is_active                 Boolean    @default(true)
+  password_hash             String
+  phone_number              String?
+  verification_submitted_at DateTime?
+  verified_at               DateTime?
+  verified_by               Int?
+  rejection_reason          String?
+  verification_documents    String[]   @default([])
+  audit_logs                AuditLog[] @relation("UserAuditLogs")
+
+  bookings_as_guide         Booking[]           @relation("BookingGuide")
+  bookings_as_traveler      Booking[]           @relation("BookingUser")
+  approved_destinations     Destination[]       @relation("DestinationApprover")
+  created_destinations      Destination[]       @relation("DestinationCreator")
+  guide_verifications       GuideVerification[] @relation("UserGuideVerifications")
+  moderation_logs           ModerationLog[]
+  submitted_moderation_logs ModerationLog[]     @relation("ModerationSubmitter")
+  notifications             Notification[]
+  reviews_as_guide          Review[]            @relation("ReviewGuide")
+  reviews_as_traveler       Review[]            @relation("ReviewUser")
+
+  reviewed_audit_logs          AuditLog[]          @relation("AuditReviewer")
+  reviewed_guide_verifications GuideVerification[] @relation("GuideVerifier")
+
+  suspended_at    DateTime?
+  last_login_at   DateTime?
+  verifier        User?     @relation("UserVerifier", fields: [verified_by], references: [id])
+  verified_guides User[]    @relation("UserVerifier")
+
+  @@map("User")
+}
+
+model Destination {
+  id                Int       @id @default(autoincrement())
+  name              String
+  description       String
+  short_description String?
+  location          String
+  region            String?
+  price_range       String?   @default("Contact for price")
+  duration          String?
+  difficulty_level  String?
+  best_season       String?
+  highlights        String[]
+  included          String[]
+  not_included      String[]
+  requirements      String?
+  status            String    @default("draft")
+  featured          Boolean   @default(false)
+  view_count        Int       @default(0)
+  images            String[]
+  created_by        Int
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  approved_at       DateTime?
+  approved_by       Int?
+  coordinates       String?
+  rejection_reason  String?
+  submitted_at      DateTime?
+  district          String?
+  bookings          Booking[]
+
+  approver        User?           @relation("DestinationApprover", fields: [approved_by], references: [id])
+  creator         User            @relation("DestinationCreator", fields: [created_by], references: [id])
+  reviews         Review[]
+  moderation_logs ModerationLog[] // link to logs for this destination
+
+  @@map("Destination")
+}
+
+model Booking {
+  id                  Int         @id @default(autoincrement())
+  user_id             Int
+  destination_id      Int
+  guide_id            Int?
+  booking_date        DateTime
+  number_of_people    Int
+  total_amount        Float
+  currency            String      @default("UGX")
+  status              String      @default("pending")
+  special_requests    String?
+  customer_notes      String?
+  internal_notes      String?
+  payment_status      String      @default("pending")
+  payment_method      String?
+  payment_reference   String?
+  cancellation_reason String?
+  cancelled_at        DateTime?
+  completed_at        DateTime?
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+  destination         Destination @relation(fields: [destination_id], references: [id])
+  guide               User?       @relation("BookingGuide", fields: [guide_id], references: [id])
+  user                User        @relation("BookingUser", fields: [user_id], references: [id])
+  review              Review?
+
+  @@map("Booking")
+}
+
+model Review {
+  id              Int         @id @default(autoincrement())
+  booking_id      Int         @unique
+  destination_id  Int
+  user_id         Int
+  guide_id        Int?
+  rating          Int
+  title           String?
+  comment         String?
+  guide_rating    Int?
+  guide_comment   String?
+  is_verified     Boolean     @default(false)
+  status          String      @default("active")
+  reported_reason String?
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  booking         Booking     @relation(fields: [booking_id], references: [id])
+  destination     Destination @relation(fields: [destination_id], references: [id])
+  guide           User?       @relation("ReviewGuide", fields: [guide_id], references: [id])
+  user            User        @relation("ReviewUser", fields: [user_id], references: [id])
+
+  @@map("Review")
+}
+
+model ModerationLog {
+  id               Int       @id @default(autoincrement())
+  content_type     String
+  content_id       Int
+  action           String
+  moderator_id     Int
+  notes            String?
+  previous_values  Json?
+  new_values       Json?
+  created_at       DateTime  @default(now())
+  rejection_reason String?
+  status           String    @default("pending")
+  submitted_at     DateTime? @default(now())
+  submitted_by     Int?
+  moderator        User      @relation(fields: [moderator_id], references: [id])
+  submitter        User?     @relation("ModerationSubmitter", fields: [submitted_by], references: [id])
+
+  destination Destination? @relation(fields: [content_id], references: [id])
+
+  @@map("ModerationLog")
+}
+
+model AuditLog {
+  id             Int      @id @default(autoincrement())
+  user_id        Int?
+  action         String
+  resource_type  String?
+  resource_id    Int?
+  old_values     Json?
+  new_values     Json?
+  ip_address     String?
+  user_agent     String?
+  request_method String?
+  request_url    String?
+  status_code    Int?
+  error_message  String?
+  created_at     DateTime @default(now())
+  user           User?    @relation("UserAuditLogs", fields: [user_id], references: [id])
+  reviewed_by    Int?
+  reviewer       User?    @relation("AuditReviewer", fields: [reviewed_by], references: [id])
+
+  @@map("AuditLog")
+}
+
+model Notification {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  type       String
+  title      String
+  message    String
+  data       Json?
+  is_read    Boolean   @default(false)
+  read_at    DateTime?
+  action_url String?
+  priority   String    @default("normal")
+  expires_at DateTime?
+  created_at DateTime  @default(now())
+  user       User      @relation(fields: [user_id], references: [id])
+
+  @@map("Notification")
+}
+
+model GuideVerification {
+  id               Int       @id @default(autoincrement())
+  user_id          Int
+  credentials      Json?
+  documents        String[]  @default([])
+  status           String    @default("pending")
+  submitted_at     DateTime  @default(now())
+  reviewed_at      DateTime?
+  notes            String?
+  rejection_reason String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  user        User  @relation("UserGuideVerifications", fields: [user_id], references: [id])
+  reviewed_by Int?
+  reviewer    User? @relation("GuideVerifier", fields: [reviewed_by], references: [id])
+
+  @@unique([user_id, status])
+  @@map("GuideVerification")
+}

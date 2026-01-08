@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom components */
+@layer components {
+  .btn-primary {
+    @apply bg-uganda-yellow text-uganda-black px-6 py-3 rounded-full font-semibold hover:bg-yellow-400 transform hover:scale-105 transition-all duration-300;
+  }
+  
+  .btn-secondary {
+    @apply border-2 border-uganda-yellow text-uganda-black px-6 py-3 rounded-full font-semibold hover:bg-uganda-yellow transition-all duration-300;
+  }
+  
+  .card-hover {
+    @apply transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}

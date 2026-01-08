@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumuiya Tours</title>
+    <link rel="stylesheet" href="/styles/tailwind.css">
+</head>
+<body>
+    <div id="app">
+        <div id="loading-fallback" style="display: none;">
+        <div style="padding: 20px; text-align: center;">
+            <h2>Loading Jumuiya Tours...</h2>
+            <p>If this message persists, check the browser console for errors.</p>
+        </div>
+    </div>
+    </div>
+    <script type="module" src="/js/app/app.js">
+        // Emergency debug
+        console.log('🚨 EMERGENCY DEBUG START');
+        console.log('Document readyState:', document.readyState);
+        console.log('Window loaded:', window.loaded);
+        console.log('Router global:', typeof router);
+        console.log('App element:', document.getElementById('app'));
+
+        // Show fallback if nothing loads in 3 seconds
+        setTimeout(() => {
+            const appContent = document.getElementById('app').innerHTML.trim();
+            if (!appContent || appContent === '') {
+                document.getElementById('loading-fallback').style.display = 'block';
+                console.error('❌ CRITICAL: No content loaded after 3 seconds');
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

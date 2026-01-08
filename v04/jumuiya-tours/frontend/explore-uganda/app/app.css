@@ -1,0 +1,122 @@
+/* @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+html,
+body {
+  @apply bg-white dark:bg-gray-950;
+
+  @media (prefers-color-scheme: dark) {
+    color-scheme: dark;
+  }
+} */
+
+@import "tailwindcss";
+@tailwind utilities;
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  
+  /* Uganda Theme Colors */
+  --color-uganda-yellow: #FFC107;
+  --color-uganda-black: #000000;
+  --color-uganda-red: #E31837;
+}
+
+:root {
+  --uganda-yellow: #FFC107;
+  --uganda-black: #000000;
+  --uganda-red: #E31837;
+  --safari-sand: #F5F5DC;
+}
+
+/* Uganda Color Utilities */
+
+.bg-safari-sand {
+  background-color: var(--safari-sand);
+}
+
+.text-uganda-yellow {
+  color: var(--uganda-yellow);
+}
+
+.bg-uganda-yellow {
+  background-color: var(--uganda-yellow);
+}
+
+.text-uganda-black {
+  color: var(--uganda-black);
+}
+
+.bg-uganda-black {
+  background-color: var(--uganda-black);
+}
+
+.text-uganda-red {
+  color: var(--uganda-red);
+}
+
+.bg-uganda-red {
+  background-color: var(--uganda-red);
+}
+
+.border-uganda-yellow {
+  border-color: var(--uganda-yellow);
+}
+
+.border-uganda-red {
+  border-color: var(--uganda-red);
+}
+
+/* Additional Uganda utility classes for better Tailwind integration */
+.hover\:bg-uganda-yellow:hover {
+  background-color: var(--uganda-yellow);
+}
+
+.hover\:text-uganda-black:hover {
+  color: var(--uganda-black);
+}
+
+.focus\:ring-uganda-yellow:focus {
+  --tw-ring-color: var(--uganda-yellow);
+}
+
+.placeholder-img {
+  @apply bg-gray-200 border-2 border-dashed rounded-xl w-full h-56 flex items-center justify-center text-gray-500;
+}
+
+.avatar-placeholder {
+  @apply w-20 h-20 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center text-gray-500 text-xs;
+}
+
+/* Base styles */
+html,
+body {
+  @apply bg-white dark:bg-gray-950;
+
+  @media (prefers-color-scheme: dark) {
+    color-scheme: dark;
+  }
+}
+
+/* Custom component classes using Uganda colors */
+.btn-uganda {
+  @apply bg-uganda-yellow text-uganda-black font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.btn-uganda:hover {
+  @apply bg-uganda-red text-white;
+}
+
+.card-uganda {
+  @apply bg-white border border-uganda-yellow rounded-xl shadow-lg;
+}
+
+/* Text shadows for better contrast */
+.text-shadow-uganda {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}

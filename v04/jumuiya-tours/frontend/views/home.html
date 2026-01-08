@@ -1,0 +1,115 @@
+<!-- # Create home view
+cat > frontend/views/home.html << 'EOF' -->
+<!-- Navigation -->
+<nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-uganda-yellow/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-uganda-yellow rounded-full flex items-center justify-center">
+                    <span class="text-uganda-black font-bold text-lg">JT</span>
+                </div>
+                <span class="text-xl font-display font-bold text-uganda-black">Jumuiya<span class="text-uganda-yellow">Tours</span></span>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/destinations" data-link class="text-uganda-black hover:text-uganda-yellow transition-colors">Destinations</a>
+                <a href="#guides" class="text-uganda-black hover:text-uganda-yellow transition-colors">Local Guides</a>
+                <a href="#experiences" class="text-uganda-black hover:text-uganda-yellow transition-colors">Experiences</a>
+                <a href="#about" class="text-uganda-black hover:text-uganda-yellow transition-colors">About Uganda</a>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="flex items-center space-x-4" id="auth-buttons">
+                <!-- Dynamically populated based on auth state -->
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="relative h-screen flex items-center justify-center bg-gradient-to-br from-uganda-yellow to-uganda-red overflow-hidden">
+    <div class="absolute inset-0 bg-black/20"></div>
+    <div class="text-center text-white z-10 px-4">
+        <h1 class="text-5xl md:text-7xl font-display font-bold mb-6">
+            Discover The
+            <span class="text-uganda-black">Pearl</span>
+            <br>Of Africa
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto leading-relaxed">
+            Experience Uganda through the eyes of local guides. From mountain gorillas to the source of the Nile, 
+            adventure awaits in the heart of East Africa.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="/auth/register" data-link 
+               class="bg-uganda-black text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-900 transform hover:scale-105 transition-all duration-300">
+                Start Your Journey
+            </a>
+            <a href="/destinations" data-link
+               class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-uganda-black transition-all duration-300">
+                Explore Destinations
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Uganda Stats Section -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div class="p-6">
+                <div class="text-3xl md:text-5xl font-bold text-uganda-yellow mb-2">50+</div>
+                <div class="text-uganda-black font-semibold">Protected Areas</div>
+            </div>
+            <div class="p-6">
+                <div class="text-3xl md:text-5xl font-bold text-uganda-yellow mb-2">1,000+</div>
+                <div class="text-uganda-black font-semibold">Bird Species</div>
+            </div>
+            <div class="p-6">
+                <div class="text-3xl md:text-5xl font-bold text-uganda-yellow mb-2">50%</div>
+                <div class="text-uganda-black font-semibold">World's Gorillas</div>
+            </div>
+            <div class="p-6">
+                <div class="text-3xl md:text-5xl font-bold text-uganda-yellow mb-2">100+</div>
+                <div class="text-uganda-black font-semibold">Local Guides</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="module">
+import AuthService from '/js/services/auth-service.js';
+
+// Update auth buttons based on login state
+function updateAuthButtons() {
+    const authButtons = document.getElementById('auth-buttons');
+    
+    if (AuthService.isAuthenticated()) {
+        const user = AuthService.getCurrentUser();
+        authButtons.innerHTML = `
+            <span class="text-uganda-black">Welcome, ${user.name}!</span>
+            <a href="/dashboard" data-link class="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-full font-semibold hover:bg-yellow-400 transition-colors">
+                Dashboard
+            </a>
+            <button data-logout class="text-uganda-black hover:text-uganda-red transition-colors">Logout</button>
+        `;
+    } else {
+        authButtons.innerHTML = `
+            <a href="/auth/login" data-link class="text-uganda-black hover:text-uganda-yellow transition-colors">Login</a>
+            <a href="/auth/register" data-link class="bg-uganda-yellow text-uganda-black px-6 py-2 rounded-full font-semibold hover:bg-yellow-400 transition-colors">
+                Join Adventure
+            </a>
+        `;
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', updateAuthButtons);
+</script>
+
+
+
+
+
+

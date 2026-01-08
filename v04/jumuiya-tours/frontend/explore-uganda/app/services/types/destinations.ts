@@ -1,0 +1,34 @@
+export interface Destination {
+  id: number;
+  name: string;
+  description: string;
+  short_description: string | null;
+  location: string;
+  region: string | null;
+  price_range: string;
+  duration: string | null;
+  difficulty_level: string | null;
+  best_season: string | null;
+  highlights: string[];
+  included: string[];
+  not_included: string[];
+  requirements: string | null;
+  status: "approved" | "draft" | "pending" | "rejected";
+  featured: boolean;
+  view_count: number;
+  images: string[];
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+  approved_at: string | null;
+  approved_by: number | null;
+  coordinates: { lat: number; lng: number } | null;
+  rejection_reason: string | null;
+  submitted_at: string | null;
+  district: string | null;
+  creator: { name: string };
+  bookings: any[];
+  reviews: any[];
+  booking_count: number;
+  average_rating: number | null;
+}

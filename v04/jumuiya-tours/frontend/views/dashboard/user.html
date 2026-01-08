@@ -1,0 +1,84 @@
+<!-- # Create dashboard directory structure
+mkdir -p frontend/views/dashboard frontend/js/pages/dashboard
+
+# Create user dashboard
+cat > frontend/views/dashboard/user.html << 'EOF' -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Jumuiya Tours</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles/tailwind.css">
+</head>
+<body class="bg-safari-sand min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg border-b border-uganda-yellow/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-uganda-yellow rounded-full flex items-center justify-center">
+                        <span class="text-uganda-black font-bold text-sm">JT</span>
+                    </div>
+                    <span class="text-lg font-display font-bold text-uganda-black">Jumuiya<span class="text-uganda-yellow">Tours</span></span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <span id="userWelcome" class="text-uganda-black">Welcome!</span>
+                    <button id="logoutBtn" class="bg-uganda-red text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-uganda-black">User Dashboard</h1>
+            <p class="text-gray-600 mt-2">Explore Uganda's amazing destinations</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dashboard Cards -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h3 class="text-xl font-semibold text-uganda-black mb-2">My Bookings</h3>
+                <p class="text-gray-600">View and manage your tour bookings</p>
+                <button class="mt-4 bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors">
+                    View Bookings
+                </button>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h3 class="text-xl font-semibold text-uganda-black mb-2">Explore Destinations</h3>
+                <p class="text-gray-600">Discover amazing places in Uganda</p>
+                <button class="mt-4 bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors">
+                    Browse Destinations
+                </button>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h3 class="text-xl font-semibold text-uganda-black mb-2">Become a Guide</h3>
+                <p class="text-gray-600">Share your knowledge and earn money</p>
+                <button id="applyGuideBtn" class="mt-4 bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors">
+                    Apply as Guide
+                </button>
+            </div>
+        </div>
+
+        <!-- User Info Section -->
+        <div class="mt-8 bg-white p-6 rounded-2xl shadow-lg">
+            <h3 class="text-2xl font-semibold text-uganda-black mb-4">Your Profile</h3>
+            <div id="userInfo" class="text-gray-700">
+                <!-- User info will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/pages/dashboard/user-dashboard.js"></script>
+</body>
+</html>
+
+

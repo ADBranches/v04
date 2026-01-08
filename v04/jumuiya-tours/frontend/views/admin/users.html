@@ -1,0 +1,77 @@
+<!-- frontend/views/admin/users.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management - Jumuiya Tours</title>
+  <link href="/styles/tailwind.css" rel="stylesheet">
+</head>
+<body class="bg-safari-sand font-african">
+  <div class="flex min-h-screen">
+    <div id="sidebarContainer" class="w-64 bg-safari-sand"></div>
+    <div class="flex-1">
+      <nav class="bg-white shadow-lg border-b border-uganda-yellow/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-2">
+              <a href="/" data-link class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-uganda-yellow rounded-full flex items-center justify-center">
+                  <span class="text-uganda-black font-bold text-sm">JT</span>
+                </div>
+                <span class="text-lg font-display font-bold text-uganda-black">Jumuiya<span class="text-uganda-yellow">Tours</span></span>
+              </a>
+            </div>
+            <div class="flex items-center space-x-4" id="nav-auth-buttons"></div>
+          </div>
+        </nav>
+        <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+          <header class="mb-6">
+            <h1 class="text-2xl font-bold font-display text-uganda-black">User Management</h1>
+            <p class="text-gray-600">Manage user accounts and guide statuses for Jumuiya Tours.</p>
+            <div id="errorMessage" class="error-message hidden"></div>
+            <div id="successMessage" class="success-message hidden"></div>
+          </header>
+          <form id="filterForm" class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                <label for="role" class="block text-sm font-medium text-uganda-black font-african">Filter by Role</label>
+                <select id="role" name="role" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-uganda-yellow focus:border-uganda-yellow font-african">
+                    <option value="">All Roles</option>
+                    <option value="user">User</option>
+                    <option value="guide">Guide</option>
+                    <option value="auditor">Auditor</option>
+                    <option value="admin">Admin</option>
+                </select>
+                </div>
+                <div>
+                <label for="guide_status" class="block text-sm font-medium text-uganda-black font-african">Filter by Guide Status</label>
+                <select id="guide_status" name="guide_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-uganda-yellow focus:border-uganda-yellow font-african">
+                    <option value="">All Statuses</option>
+                    <option value="unverified">Unverified</option>
+                    <option value="pending">Pending</option>
+                    <option value="verified">Verified</option>
+                </select>
+                </div>
+                <div class="flex items-end">
+                <button type="submit" class="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 font-display w-full">Apply Filters</button>
+                </div>
+            </div>
+          </form>
+          <div id="userContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+          <div id="paginationContainer" class="flex justify-center mt-8"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { initNavigation } from '/js/components/navigation.js';
+    import { initSidebar } from '/js/components/sidebar.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      initNavigation();
+      initSidebar();
+    });
+  </script>
+  <script type="module" src="/js/pages/admin/user-management.js"></script>
+</body>
+</html>

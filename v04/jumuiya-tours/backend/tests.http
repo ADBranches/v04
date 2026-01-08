@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:5000
+@adminToken = {{ADMIN_TOKEN}}
+@auditorToken = {{AUDITOR_TOKEN}}
+@guideToken = {{GUIDE_TOKEN}}
+@userToken = {{USER_TOKEN}}
+
+### Health
+GET {{baseUrl}}/api/health
+
+### Login (admin)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@jumuiya.com",
+  "password": "admin123."
+}
+
+### Who am I
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{adminToken}}
+
+### Destinations (public)
+GET {{baseUrl}}/api/destinations
+
+### Create destination (admin)
+POST {{baseUrl}}/api/destinations
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "HTTP Test Destination",
+  "description": "from .http file",
+  "location": "Uganda"
+}
+
+### Moderation pending (auditor)
+GET {{baseUrl}}/api/moderation/pending
+Authorization: Bearer {{auditorToken}}
+
+### Booking create (user) – align with your controllers
+POST {{baseUrl}}/api/bookings
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "destination_id": 30,
+  "booking_date": "{{timestamp}}",
+  "number_of_people": 2,
+  "total_amount": 100000,
+  "currency": "UGX"
+}
+

@@ -1,0 +1,69 @@
+<!-- frontend/views/guides/verification.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guide Verification - Jumuiya Tours</title>
+  <link href="/styles/tailwind.css" rel="stylesheet">
+</head>
+<body class="bg-safari-sand font-african">
+  <div class="flex min-h-screen">
+    <div id="sidebarContainer" class="w-64 bg-safari-sand"></div>
+    <div class="flex-1">
+      <nav class="bg-white shadow-lg border-b border-uganda-yellow/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-2">
+              <a href="/" data-link class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-uganda-yellow rounded-full flex items-center justify-center">
+                  <span class="text-uganda-black font-bold text-sm">JT</span>
+                </div>
+                <span class="text-lg font-display font-bold text-uganda-black">Jumuiya<span class="text-uganda-yellow">Tours</span></span>
+              </a>
+            </div>
+            <div class="flex items-center space-x-4" id="nav-auth-buttons"></div>
+          </div>
+        </nav>
+        <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+          <header class="mb-6">
+            <h1 class="text-2xl font-bold font-display text-uganda-black">Guide Verification</h1>
+            <p class="text-gray-600">Submit your credentials and documents to become a verified guide.</p>
+            <div id="errorMessage" class="error-message hidden"></div>
+            <div id="successMessage" class="success-message hidden"></div>
+          </header>
+          <form id="verificationForm" class="bg-white p-6 rounded-lg shadow-md">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="col-span-2">
+                <label for="experience" class="block text-sm font-medium text-uganda-black font-african">Experience</label>
+                <textarea id="experience" name="experience" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-uganda-yellow focus:border-uganda-yellow font-african" rows="4" placeholder="Describe your guiding experience (e.g., 5 years leading safaris in Uganda)"></textarea>
+              </div>
+              <div class="col-span-2">
+                <label for="certifications" class="block text-sm font-medium text-uganda-black font-african">Certifications</label>
+                <input type="text" id="certifications" name="certifications" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-uganda-yellow focus:border-uganda-yellow font-african" placeholder="Enter certifications (comma-separated, e.g., Uganda Wildlife Authority License, First Aid)">
+              </div>
+              <div class="col-span-2">
+                <label for="documents" class="block text-sm font-medium text-uganda-black font-african">Documents</label>
+                <input type="file" id="documents" name="documents" multiple accept=".pdf,.jpg,.png" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-uganda-yellow focus:border-uganda-yellow font-african">
+              </div>
+            </div>
+            <div class="mt-6 flex space-x-4">
+              <button type="submit" class="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 font-display">Submit Verification</button>
+              <button type="button" onclick="router.navigate('/dashboard/guide')" class="bg-safari-sand text-uganda-black px-4 py-2 rounded-lg hover:bg-gray-300 font-display">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { initNavigation } from '/js/components/navigation.js';
+    import { initSidebar } from '/js/components/sidebar.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      initNavigation();
+      initSidebar();
+    });
+  </script>
+  <script type="module" src="/js/pages/guides/guide-verification.js"></script>
+</body>
+</html>
