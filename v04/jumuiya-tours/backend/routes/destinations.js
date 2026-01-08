@@ -281,6 +281,105 @@ router.post(
 /* =========================================================
    🧱 CRUD ROUTES (after search & moderation)
 ========================================================= */
+// Create destination (Admin + Guides)
+router.post(
+  '/',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const {
+        name,
+        description,
+        location,
+        region,
+        district,
+        price_range,
+        duration,
+        difficulty_level,
+        best_season,
+        images,
+        highlights,
+        included,
+        not_included,
+        requirements,
+      } = req.body;
+
+      if (!name || !location) {
+        return res.status(400).json({
+          success: false,
+          error: 'Name and location are required',
+          code: 'MISSING_REQUIRED_FIELDS',
+        });
+      }
+
+      const isAdminOrAuditor = ['admin', 'auditor'].includes(req.user.role);
+      const status = isAdminOrAuditor ? 'approved' : 'draft';
+
+      const data = {
+        name: name.trim(),
+        description: description || null,
+        short_description:
+          (description && description.slice(0, 200)) ||
+          null,
+        location: location.trim(),
+        created_by: req.user.id,
+        status,
+        approved_by: isAdminOrAuditor ? req.user.id : null,
+        approved_at: isAdminOrAuditor ? new Date() : null,
+      };
+
+      if (region) data.region = region;
+      if (district) data.district = district;
+      if (price_range) data.price_range = price_range;
+      if (duration) data.duration = duration;
+      if (difficulty_level) data.difficulty_level = difficulty_level;
+      if (best_season) data.best_season = best_season;
+      if (Array.isArray(images)) data.images = images;
+      if (Array.isArray(highlights)) data.highlights = highlights;
+      if (Array.isArray(included)) data.included = included;
+      if (Array.isArray(not_included)) data.not_included = not_included;
+      if (requirements) data.requirements = requirements;
+
+      const destination = await prisma.destination.create({ data });
+
+      // Audit log (optional but nice, matches your delete route)
+      await logAuditEvent(
+        req.user.id,
+        'CREATE_DESTINATION',
+        'destination',
+        destination.id,
+        {
+          newValues: {
+            name: destination.name,
+            location: destination.location,
+            status: destination.status,
+          },
+        },
+      );
+
+      return res.status(201).json({
+        success: true,
+        message: 'Destination created successfully',
+        destination,
+      });
+    } catch (error) {
+      console.error('Create destination error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to create destination',
+        code: 'CREATE_DESTINATION_ERROR',
+      });
+    }
+  },
+);
 
 // Get destination by ID
 router.get('/:id', optionalAuth, async (req, res) => {
@@ -340,6 +439,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
     });
   }
 });
+
+
 
 // ✅ (Retain all your remaining CRUD, approve/reject, feature/unfeature, delete, and admin stats routes unchanged below)
 /* =========================================================
