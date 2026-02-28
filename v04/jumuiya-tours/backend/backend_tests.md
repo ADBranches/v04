@@ -1,10 +1,10 @@
  *poking* the RBAC 😈
 
-Your Phase 4 plan is basically correct, it just needs **one important adjustment** for your app:
+our Phase 4 plan is basically correct, it just needs **one important adjustment** for our app:
 
-* Your API lives at **`/api`**, so all paths must be `/api/moderation/...`, not just `/moderation/...`.
+* our API lives at **`/api`**, so all paths must be `/api/moderation/...`, not just `/moderation/...`.
 
-I’ll rewrite the whole Phase 4 guide **correctly for your project** (localhost:5000 + `/api`).
+I’ll rewrite the whole Phase 4 guide **correctly for our project** (localhost:5000 + `/api`).
 
 ---
 
@@ -58,7 +58,7 @@ curl -i "$BASE_URL/moderation/queue" \
 
 ✅ **Expectations**
 
-* **Admin / Auditor** → `200` + JSON list (whatever shape your controller returns).
+* **Admin / Auditor** → `200` + JSON list (whatever shape our controller returns).
 * **Guide / User** → `403` with JSON containing:
 
   ```json
@@ -69,7 +69,7 @@ curl -i "$BASE_URL/moderation/queue" \
   }
   ```
 
-(Exact wording of `error` is up to your middleware, but the `code` should be that.)
+(Exact wording of `error` is up to our middleware, but the `code` should be that.)
 
 ---
 
@@ -206,15 +206,14 @@ curl -i -X POST "$BASE_URL/moderation/submit" \
 
 ✅ **Expectations**
 
-* **Guide** → `200` or `201` (depending on your controller) and a moderation log entry is created.
+* **Guide** → `200` or `201` (depending on our controller) and a moderation log entry is created.
 * **User / Admin** → `403` from `requireRole(['guide'])`.
 
 ---
 
-That’s the **fully corrected Phase 4 guide** tailored to your actual backend:
+That’s the **fully corrected Phase 4 guide** tailored to our actual backend:
 
 * Correct host: `http://localhost:5000`
 * Correct prefix: `/api`
-* Tokens consistent with your existing scripts.
+* Tokens consistent with our existing scripts.
 
-Run these and paste any weird responses (especially unexpected 200/403 combos) and we’ll know exactly which middleware/permission needs tightening.
