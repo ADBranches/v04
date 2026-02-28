@@ -1,7 +1,10 @@
 // backend/generate-test-tokens.js
+import 'dotenv/config'; 
+
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-
+import fs from 'fs';            
+import path from 'path';        
 const prisma = new PrismaClient();
 
 async function generateAllTokens() {
@@ -42,6 +45,8 @@ async function generateAllTokens() {
 async function runTests() {
   const tokens = await generateAllTokens();
   
+  updateEnvWithTokens(tokens);
+
   console.log('🚀 COPY AND PASTE THESE COMMANDS TO TEST:\n');
   
   Object.entries(tokens).forEach(([role, data]) => {
@@ -82,6 +87,40 @@ async function runTests() {
   console.log('# 7. Guide Verifications');
   console.log('curl -X GET "http://localhost:5000/api/guides/verifications?status=pending" \\');
   console.log('  -H "Authorization: Bearer $ADMIN_TOKEN"\n');
+}
+
+// ✅ Helper: write generated tokens into .env
+function updateEnvWithTokens(tokens) {
+  const envPath = path.resolve(process.cwd(), '.env');
+  let envContent = '';
+
+  try {
+    envContent = fs.readFileSync(envPath, 'utf8');
+  } catch {
+    // .env might not exist yet; we'll create it
+    envContent = '';
+  }
+
+  const lines = envContent.split('\n');
+
+  // Keys we are going to manage, e.g. ADMIN_TOKEN, AUDITOR_TOKEN, USER_TOKEN...
+  const keys = Object.keys(tokens).map((role) => `${role.toUpperCase()}_TOKEN`);
+
+  // Keep all existing lines except the ones we’re about to replace
+  const filtered = lines.filter((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return true;
+    return !keys.some((k) => trimmed.startsWith(`${k}=`));
+  });
+
+  // Append fresh token lines
+  for (const [role, data] of Object.entries(tokens)) {
+    const key = `${role.toUpperCase()}_TOKEN`;
+    filtered.push(`${key}='${data.token}'`);
+  }
+
+  fs.writeFileSync(envPath, filtered.join('\n'), 'utf8');
+  console.log(`\n📝 .env updated with: ${keys.join(', ')}`);
 }
 
 runTests()

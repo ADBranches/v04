@@ -6,11 +6,19 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "db:reset": "node database/setup-reset.js",
-    "db:setup": "node database/setup.js",
-    "db:seed": "node database/seed.js",
-    "test:e2e": "NODE_OPTIONS='--experimental-vm-modules' jest --runInBand --detectOpenHandles"
 
+    "db:reset": "node db/setup-reset.js",
+    "db:setup": "node db/setup.js",
+    "db:seed": "node db/seed.js",
+
+    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --detectOpenHandles",
+
+    "smoke": "bash scripts/api-smoke.sh",
+    "test:apis": "node scripts/test-apis-fixed.js",
+    "test:destinations": "bash scripts/test-destinations.sh",
+
+    "db:check-schema": "node db/check-schema.js",
+    "db:fix-users": "node db/fix-users.js"
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",

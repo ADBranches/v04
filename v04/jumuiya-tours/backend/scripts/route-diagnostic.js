@@ -1,5 +1,11 @@
-// backend/route-diagnostic.js
+// scripts/route-diagnostic.js
+
+// ✅ Load environment variables (so JWT_SECRET is available)
+import 'dotenv/config';
+
 import { PrismaClient } from '@prisma/client';
+import jwt from 'jsonwebtoken'; // ✅ ESM import for jsonwebtoken
+
 const prisma = new PrismaClient();
 const BASE_URL = 'http://localhost:5000/api';
 
@@ -77,8 +83,21 @@ async function runDiagnostic() {
   console.log('🔍 API Route Diagnostic\n');
   
   // Get a token for testing
-  const user = await prisma.user.findUnique({ where: { email: 'user@jumuiya.com' } });
-  const token = require('jsonwebtoken').sign(
+  const user = await prisma.user.findUnique({
+    where: { email: 'user@jumuiya.com' }
+  });
+
+  if (!user) {
+    console.error('❌ No user found with email user@jumuiya.com');
+    return;
+  }
+
+  if (!process.env.JWT_SECRET) {
+    console.error('❌ JWT_SECRET is not set in the environment');
+    return;
+  }
+
+  const token = jwt.sign(
     { userId: user.id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: '1h' }
@@ -89,8 +108,10 @@ async function runDiagnostic() {
   for (const endpoint of endpointsToTest) {
     const result = await testEndpoint(endpoint, token);
     
-    const statusIcon = result.exists ? '✅' : 
-                      result.requiresAuth ? '🔐' : '❌';
+    const statusIcon =
+      result.exists ? '✅' :
+      result.requiresAuth ? '🔐' :
+      '❌';
     
     console.log(`${statusIcon} ${endpoint.method} ${endpoint.path}`);
     console.log(`   Status: ${result.status}, Exists: ${result.exists}`);

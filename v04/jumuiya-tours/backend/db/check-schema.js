@@ -1,16 +1,16 @@
 // database/check-schema.js
 import { Client } from 'pg';
 import dotenv from 'dotenv';
+import { createClientConfig } from '../config/database.js';
 
 dotenv.config();
 
-const client = new Client({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'jumuiya_tours',
-  user: process.env.DB_USER || 'jumuiya_user',
-  password: process.env.DB_PASSWORD || '',
-});
+const client = new Client(createClientConfig());
+
+// remember the helper function
+function quoteIdent(name) {
+  return `"${name.replace(/"/g, '""')}"`;
+}
 
 async function checkSchema() {
   try {
@@ -68,6 +68,11 @@ async function checkSchema() {
   }
 }
 
+// function quoteIdent(name) {
+//   // Safely wrap in double quotes and escape any internal quotes
+//   return `"${name.replace(/"/g, '""')}"`;
+// }
+
 async function checkTableDetails(tableName) {
   const columns = await client.query(`
     SELECT 
@@ -89,8 +94,9 @@ async function checkTableDetails(tableName) {
     console.log(`   ${col.column_name} ${col.data_type}${length} ${nullable}${defaultValue}`);
   });
 
-  // Get row count
-  const countResult = await client.query(`SELECT COUNT(*) FROM ${tableName}`);
+  // Get row count (quote identifiers to handle CamelCase tables like "AuditLog")
+  const safeTableName = quoteIdent(tableName);
+  const countResult = await client.query(`SELECT COUNT(*) FROM ${safeTableName}`);
   console.log(`   📈 Row count: ${countResult.rows[0].count}\n`);
 }
 

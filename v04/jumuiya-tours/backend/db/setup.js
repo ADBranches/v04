@@ -1,18 +1,15 @@
 // database/setup.js
+// database/setup.js
 import pkg from 'pg';
 const { Client } = pkg;
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import { createClientConfig } from '../config/database.js';
 
 dotenv.config();
 
-const client = new Client({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER || 'jumuiya_user',
-  password: process.env.DB_PASSWORD || '',
-  database: 'postgres'
-});
+// Connect to the postgres maintenance DB for CREATE DATABASE, etc.
+const client = new Client(createClientConfig('postgres'));
 
 async function setupDatabase() {
   try {
@@ -36,14 +33,8 @@ async function setupDatabase() {
 
     await client.end();
 
-    // Connect to our database to create tables
-    const dbClient = new Client({
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 5432,
-      user: process.env.DB_USER || 'jumuiya_user',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'jumuiya_tours'
-    });
+    // Connect to our application database to create tables
+    const dbClient = new Client(createClientConfig());
 
     await dbClient.connect();
     console.log('✅ Connected to application database');
@@ -197,6 +188,7 @@ async function setupDatabase() {
     console.log('✅ Created reviews table');
 
     // Moderation logs table
+    // Moderation logs table
     await dbClient.query(`
       CREATE TABLE IF NOT EXISTS moderation_logs (
         id SERIAL PRIMARY KEY,
@@ -207,15 +199,12 @@ async function setupDatabase() {
         notes TEXT,
         previous_values JSONB,
         new_values JSONB,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        
-        -- Indexes
-        CONSTRAINT valid_content_reference CHECK (
-          (content_type = 'destination' AND content_id IN (SELECT id FROM destinations)) OR
-          (content_type = 'guide_verification' AND content_id IN (SELECT id FROM users)) OR
-          (content_type = 'review' AND content_id IN (SELECT id FROM reviews)) OR
-          (content_type = 'user' AND content_id IN (SELECT id FROM users))
-        )
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        -- ❗ NOTE:
+        -- We *cannot* enforce cross-table references (content_id)
+        -- in a CHECK constraint because PostgreSQL does not allow
+        -- subqueries in CHECK expressions. That integrity will be
+        -- enforced in application logic instead.
       );
       
       CREATE INDEX IF NOT EXISTS idx_moderation_logs_content_type ON moderation_logs(content_type);

@@ -7,7 +7,6 @@ import {
   requirePermission,
   requireAnyPermission,
   requireResourceAccess,
-  scopedQuery
 } from '../middleware/permission-middleware.js';
 import { logAuditEvent } from '../middleware/audit.js';
 
@@ -648,6 +647,110 @@ router.post('/:id/unfeature',
     } catch (error) {
       console.error('Unfeature destination error:', error);
       res.status(500).json({ success: false, error: 'Failed to unfeature destination', code: 'UNFEATURE_DESTINATION_ERROR' });
+    }
+  }
+);
+
+// Admin: update a destination by id
+router.put(
+  '/:id',
+  authenticateToken,
+  requirePermission('edit_destinations'), // or requireRole(['admin']) if you prefer
+  async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid destination ID',
+        code: 'INVALID_ID',
+      });
+    }
+
+    const {
+      name,
+      description,
+      location,
+      status,
+      region,
+      district,
+      price_range,
+      duration,
+      difficulty_level,
+      best_season,
+      images,
+      highlights,
+      included,
+      not_included,
+      requirements,
+    } = req.body;
+
+    const data = {};
+
+    if (name !== undefined) data.name = name;
+    if (description !== undefined) {
+      data.description = description;
+      data.short_description = description ? description.slice(0, 200) : null;
+    }
+    if (location !== undefined) data.location = location;
+    if (status !== undefined) data.status = status;
+    if (region !== undefined) data.region = region;
+    if (district !== undefined) data.district = district;
+    if (price_range !== undefined) data.price_range = price_range;
+    if (duration !== undefined) data.duration = duration;
+    if (difficulty_level !== undefined) data.difficulty_level = difficulty_level;
+    if (best_season !== undefined) data.best_season = best_season;
+    if (Array.isArray(images)) data.images = images;
+    if (Array.isArray(highlights)) data.highlights = highlights;
+    if (Array.isArray(included)) data.included = included;
+    if (Array.isArray(not_included)) data.not_included = not_included;
+    if (requirements !== undefined) data.requirements = requirements;
+
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No updatable fields provided',
+        code: 'NO_FIELDS',
+      });
+    }
+
+    try {
+      const existing = await prisma.destination.findUnique({ where: { id } });
+      if (!existing) {
+        return res.status(404).json({
+          success: false,
+          error: 'Destination not found',
+          code: 'DESTINATION_NOT_FOUND',
+        });
+      }
+
+      const destination = await prisma.destination.update({
+        where: { id },
+        data,
+      });
+
+      await logAuditEvent(
+        req.user.id,
+        'UPDATE_DESTINATION',
+        'destination',
+        id,
+        {
+          oldValues: existing,
+          newValues: destination,
+        },
+      );
+
+      return res.json({
+        success: true,
+        message: 'Destination updated successfully',
+        destination,
+      });
+    } catch (error) {
+      console.error('Update destination error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update destination',
+        code: 'UPDATE_DESTINATION_ERROR',
+      });
     }
   }
 );

@@ -1,8 +1,9 @@
 // routes/bookings.js
-import express from 'express';
+// backend/routes/bookings.js
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken, requirePermission, checkOwnership } from '../middleware/auth.js';
+import { authenticateToken } from '../middleware/auth.js';
 import { requireRole } from '../middleware/role-middleware.js';
+import express from 'express';
 
 const prisma = new PrismaClient();
 const router = express.Router();

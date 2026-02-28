@@ -101,7 +101,7 @@ if [[ -n "${USER_TOKEN:-}" ]]; then
     '{destination_id: ($did|tonumber), booking_date: $dt, number_of_people: 2, total_amount: 100000, currency: "UGX"}')
 
   code=$(call POST /api/bookings "$USER_TOKEN" "$(echo "$book_body")")
-  assert_status 200 "$code" "Booking create (user)"
+  assert_status 201 "$code" "Booking create (user)"
 fi
 
 echo "🎉 Smoke suite passed."

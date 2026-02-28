@@ -4,7 +4,8 @@ import {
   hasAnyPermission, 
   hasAllPermissions,
   canManageResource,
-  isValidPermission 
+  isValidPermission,
+  getEffectiveRole
 } from '../config/permissions-config.js';
 
 /**
@@ -35,44 +36,47 @@ export const requirePermission = (permission, options = {}) => {
       });
     }
 
+    const effectiveRole = getEffectiveRole(req.user);
+
     // Validate permission string
     if (!isValidPermission(permission) && permission !== '*') {
       return res.status(500).json({
         success: false,
         error: 'Invalid permission configuration',
         code: 'INVALID_PERMISSION',
-        permission: permission
+        permission,
+        message: 'Configured permission is not registered in PERMISSION_CATEGORIES'
       });
     }
 
     try {
       let hasAccess = hasPermission(req.user, permission);
 
-      // Apply ownership check if required
+      // Ownership check (optional)
       if (hasAccess && ownershipCheck && resourceType) {
         const resourceId = req.params.id;
         if (resourceId) {
-          // In a real implementation, you'd fetch the resource here
-          // For now, we'll assume the resource is attached to req or needs fetching
           hasAccess = await checkResourceOwnership(req, resourceType, resourceId);
         }
       }
 
-      // Apply custom check if provided
+      // Custom check (optional)
       if (hasAccess && customCheck) {
         hasAccess = await customCheck(req);
       }
 
       if (!hasAccess) {
-        // Log permission denial
-        console.warn(`Permission denied: User ${req.user.id} (${req.user.role}) tried to access ${req.method} ${req.originalUrl} requiring permission: ${permission}`);
-        
+        console.warn(
+          `Permission denied: User ${req.user.id} (${effectiveRole}) tried to access ` +
+          `${req.method} ${req.originalUrl} requiring permission: ${permission}`
+        );
+
         return res.status(403).json({
           success: false,
           error: 'Insufficient permissions',
           code: 'INSUFFICIENT_PERMISSIONS',
           required: permission,
-          current: req.user.role,
+          currentRole: effectiveRole,
           message: 'You do not have permission to perform this action'
         });
       }
@@ -106,18 +110,35 @@ export const requireAnyPermission = (permissions, options = {}) => {
       });
     }
 
+    // Optional: validate all permissions except wildcard
+    const invalid = permissions.filter(
+      (p) => p !== '*' && !isValidPermission(p)
+    );
+    if (invalid.length > 0) {
+      return res.status(500).json({
+        success: false,
+        error: 'Invalid permission configuration',
+        code: 'INVALID_PERMISSION',
+        invalidPermissions: invalid
+      });
+    }
+
     try {
       const hasAny = hasAnyPermission(req.user, permissions);
 
       if (!hasAny) {
-        console.warn(`Any permission denied: User ${req.user.id} (${req.user.role}) tried to access ${req.method} ${req.originalUrl} requiring any of: ${permissions.join(', ')}`);
-        
+        const effectiveRole = getEffectiveRole(req.user);
+        console.warn(
+          `Any permission denied: User ${req.user.id} (${effectiveRole}) tried to access ` +
+          `${req.method} ${req.originalUrl} requiring any of: ${permissions.join(', ')}`
+        );
+
         return res.status(403).json({
           success: false,
           error: 'Insufficient permissions',
           code: 'INSUFFICIENT_PERMISSIONS',
           requiredAny: permissions,
-          current: req.user.role
+          currentRole: effectiveRole
         });
       }
 
@@ -248,7 +269,7 @@ export const requireResourceAccess = (resourceType, ownershipPermission, adminPe
 
     try {
       const resourceId = req.params.id;
-      
+
       if (!resourceId) {
         return res.status(400).json({
           success: false,
@@ -257,30 +278,35 @@ export const requireResourceAccess = (resourceType, ownershipPermission, adminPe
         });
       }
 
-      // Check if user has admin-level access
-      const hasAdminAccess = adminPermission ? hasPermission(req.user, adminPermission) : 
-                            ['admin', 'auditor'].includes(req.user.role);
+      const role = (req.user.role || '').toLowerCase();
+
+      // Admin-level access: either via specific permission or role
+      const hasAdminAccess = adminPermission
+        ? hasPermission(req.user, adminPermission)
+        : ['admin', 'auditor'].includes(role);
 
       if (hasAdminAccess) {
         return next();
       }
 
-      // Check ownership-based access
-      const hasOwnershipAccess = await checkResourceOwnership(req, resourceType, resourceId);
-      
-      if (hasOwnershipAccess && hasPermission(req.user, ownershipPermission)) {
+      // Ownership check
+      const isOwner = await checkResourceOwnership(req, resourceType, resourceId);
+
+      if (isOwner && hasPermission(req.user, ownershipPermission)) {
         return next();
       }
 
-      // Log access denial
-      console.warn(`Resource access denied: User ${req.user.id} (${req.user.role}) tried to access ${resourceType} ${resourceId}`);
-      
+      console.warn(
+        `Resource access denied: User ${req.user.id} (${role}) tried to access ` +
+        `${resourceType} ${resourceId}`
+      );
+
       return res.status(403).json({
         success: false,
         error: 'Access denied',
         code: 'RESOURCE_ACCESS_DENIED',
-        resourceType: resourceType,
-        resourceId: resourceId,
+        resourceType,
+        resourceId,
         message: 'You do not have access to this resource'
       });
 

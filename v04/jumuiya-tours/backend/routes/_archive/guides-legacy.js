@@ -1,9 +1,11 @@
 // routes/guides-enhanced.js
 import express from 'express';
-import { query } from '../config/database.js';
+import { PrismaClient } from '@prisma/client';
+
 import { authenticateToken, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
+const prisma = new PrismaClient();
 
 // Apply as guide (User only)
 router.post('/apply', authenticateToken, requireRole(['user']), async (req, res) => {

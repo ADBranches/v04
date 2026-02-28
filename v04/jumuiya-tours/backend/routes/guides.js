@@ -10,12 +10,11 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 // Apply authentication to all routes
-router.use(authenticateToken);
+// router.use(authenticateToken);
 
 // Apply as guide (User only)
 // Apply as guide (Use canBecomeGuide middleware)
 router.post('/apply', 
-  authenticateToken,
   canBecomeGuide, // ← CHANGED: Use canBecomeGuide instead of requireRole(['user'])
   async (req, res) => {
     try {

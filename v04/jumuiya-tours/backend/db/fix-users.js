@@ -2,16 +2,11 @@
 import { Client } from 'pg';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import { createClientConfig } from '../config/database.js';
 
 dotenv.config();
 
-const client = new Client({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'jumuiya_tours',
-  user: process.env.DB_USER || 'jumuiya_user',
-  password: process.env.DB_PASSWORD || '',
-});
+const client = new Client(createClientConfig());
 
 async function fixUsersTable() {
   try {

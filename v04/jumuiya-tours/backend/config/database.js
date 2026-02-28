@@ -6,23 +6,33 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Detect if we're running tests
-const isTest = process.env.NODE_ENV === 'test'; // ✅ Added: detect Jest/test mode
+const isTest = process.env.NODE_ENV === 'test'; // ✅ detect Jest/test mode
 
-// Database configuration with connection pooling
-const pool = new Pool({
+// ✅ Central base config used by BOTH Pool and any Client-based scripts
+const baseConfig = {
   host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
+  port: Number(process.env.DB_PORT) || 5432,
   database: process.env.DB_NAME || 'jumuiya_tours',
-  user: process.env.DB_USER || 'trovas',
+  // ⬇️ Align default user with your other db scripts
+  user: process.env.DB_USER || 'jumuiya_user',
   password: process.env.DB_PASSWORD || '',
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
   maxUses: 7500,
+};
+
+// Helper to create Client configs for scripts (setup, reset, fix-users, etc.)
+export const createClientConfig = (overrideDb) => ({
+  ...baseConfig,
+  database: overrideDb || baseConfig.database,
 });
 
+// Database connection pool for the app runtime
+const pool = new Pool(baseConfig);
+
 // Log connection events
-if (!isTest) { // ✅ Added: silence logs during tests
+if (!isTest) {
   pool.on('connect', () => console.log('✅ Database connection established'));
   pool.on('acquire', () => console.log('🔗 Client acquired from pool'));
   pool.on('remove', () => console.log('🔌 Client removed from pool'));
@@ -37,18 +47,20 @@ export const query = async (text, params) => {
     const duration = Date.now() - start;
 
     // Log only outside tests
-    if (!isTest) { // ✅ Added: disable query logs in test environment
+    if (!isTest) {
       if (duration > 1000) {
         console.warn(`🐌 Slow query detected: ${text} - ${duration}ms`);
       } else {
-        console.log(`📊 Executed query: ${text} - ${duration}ms - Rows: ${result.rows.length}`);
+        console.log(
+          `📊 Executed query: ${text} - ${duration}ms - Rows: ${result.rows.length}`
+        );
       }
     }
 
     return result;
   } catch (error) {
     const duration = Date.now() - start;
-    if (!isTest) { // ✅ Added: suppress error logs during Jest runs
+    if (!isTest) {
       console.error('❌ Query error:', {
         text,
         params,
@@ -111,20 +123,29 @@ export const getDatabaseStats = async () => {
   try {
     const tablesResult = await query(`
       SELECT schemaname, tablename, tableowner, tablespace, hasindexes, hasrules, hastriggers
-      FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename
+      FROM pg_tables 
+      WHERE schemaname = 'public' 
+      ORDER BY tablename
     `);
 
-    const sizeResult = await query(`
+    const sizeResult = await query(
+      `
       SELECT pg_size_pretty(pg_database_size($1)) as database_size
-    `, [process.env.DB_NAME]);
+    `,
+      [process.env.DB_NAME]
+    );
 
-    const connectionsResult = await query(`
+    const connectionsResult = await query(
+      `
       SELECT 
         count(*) as total_connections,
         count(*) FILTER (WHERE state = 'active') as active_connections,
         count(*) FILTER (WHERE state = 'idle') as idle_connections
-      FROM pg_stat_activity WHERE datname = $1
-    `, [process.env.DB_NAME]);
+      FROM pg_stat_activity 
+      WHERE datname = $1
+    `,
+      [process.env.DB_NAME]
+    );
 
     return {
       tables: tablesResult.rows,
@@ -132,12 +153,12 @@ export const getDatabaseStats = async () => {
       connections: connectionsResult.rows[0],
     };
   } catch (error) {
-    if (!isTest) console.error('Error getting database stats:', error); // ✅ Skip noisy logs in tests
+    if (!isTest) console.error('Error getting database stats:', error);
     return { error: error.message };
   }
 };
 
-// ✅ Added: clean shutdown helper for Jest teardown
+// ✅ Clean shutdown helper for Jest teardown / graceful exit
 export const closePool = async () => {
   try {
     await pool.end();

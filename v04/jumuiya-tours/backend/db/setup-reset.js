@@ -3,16 +3,12 @@ import pkg from 'pg';
 const { Client } = pkg;
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import { createClientConfig } from '../config/database.js';
 
 dotenv.config();
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'jumuiya_tours',
-  user: process.env.DB_USER || 'jumuiya_user',
-  password: process.env.DB_PASSWORD || ''
-};
+// Shared config from config/database.js
+const dbConfig = createClientConfig();
 
 async function resetDatabase() {
   const client = new Client(dbConfig);

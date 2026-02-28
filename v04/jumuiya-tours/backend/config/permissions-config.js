@@ -4,7 +4,7 @@
  * Defines permissions for each user role in the system
  */
 
-const PERMISSIONS = {
+export const PERMISSIONS = {
   // Admin: Super user with all permissions
   ADMIN: ['*'], // Wildcard for all permissions
   
@@ -121,7 +121,7 @@ const PERMISSIONS = {
 };
 
 // Permission categories for UI organization
-const PERMISSION_CATEGORIES = {
+export const PERMISSION_CATEGORIES = {
   DESTINATION_MANAGEMENT: [
     'view_destinations',
     'create_destinations',
@@ -201,7 +201,7 @@ const PERMISSION_CATEGORIES = {
 };
 
 // Role hierarchy (higher roles inherit lower role permissions)
-const ROLE_HIERARCHY = {
+export const ROLE_HIERARCHY = {
   ADMIN: ['AUDITOR', 'GUIDE', 'USER'],
   AUDITOR: ['GUIDE', 'USER'],
   GUIDE: ['USER'],
@@ -267,6 +267,41 @@ export const getRolePermissions = (role) => {
   });
   
   return Array.from(permissions);
+};
+
+/**
+ * Get all effective permissions for a specific user (including inherited)
+ * Mirrors getUserPermissions from the old middleware config.
+ * @param {Object} user - User object with role property
+ * @returns {Array<string>}
+ */
+export const getUserPermissions = (user) => {
+  if (!user || !user.role) return [];
+  const effectiveRole = getEffectiveRole(user); // already exported below
+  return getRolePermissions(effectiveRole);
+};
+
+/**
+ * Check if user has at least a minimum role in the hierarchy
+ * Equivalent to old hasMinRole, but using uppercase roles.
+ * @param {Object} user - User object
+ * @param {string} minRole - e.g. 'user' | 'guide' | 'auditor' | 'admin'
+ * @returns {boolean}
+ */
+export const hasMinRole = (user, minRole) => {
+  if (!user || !user.role) return false;
+
+  const roleKey = user.role.toUpperCase();
+  const minKey = minRole.toUpperCase();
+
+  // Define explicit hierarchy order (lowest → highest)
+  const hierarchyOrder = ['USER', 'GUIDE', 'AUDITOR', 'ADMIN'];
+
+  const userIdx = hierarchyOrder.indexOf(roleKey);
+  const minIdx = hierarchyOrder.indexOf(minKey);
+
+  if (userIdx === -1 || minIdx === -1) return false;
+  return userIdx >= minIdx;
 };
 
 /**
