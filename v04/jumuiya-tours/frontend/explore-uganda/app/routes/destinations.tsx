@@ -9,6 +9,7 @@ import Loader from "../components/ui/loader";
 import ErrorBanner from "../components/ui/error-banner";
 import EmptyState from "../components/ui/empty-state";
 
+import { ROUTES } from "../config/routes-config";
 export default function DestinationsPage() {
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
@@ -151,13 +152,13 @@ export default function DestinationsPage() {
           <h1 className="text-3xl font-bold text-uganda-black">Explore Uganda</h1>
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={() => navigate("/search")}
+              onClick={() => navigate(ROUTES.search)}
               className="bg-white border border-uganda-yellow text-uganda-black px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-yellow-50 transition"
             >
               🔍 Advanced Search
             </button>
             {(isAdmin || isGuide) && (
-              <Link to="/destinations/create" className="btn-uganda px-4 py-2 text-sm">
+              <Link to={ROUTES.destinations.create} className="btn-uganda px-4 py-2 text-sm">
                 + Add Destination
               </Link>
             )}
@@ -268,7 +269,7 @@ export default function DestinationsPage() {
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
-                      onClick={() => navigate(`/destinations/${dest.id}`)}
+                      onClick={() => navigate(ROUTES.destinations.detail(dest.id))}
                       className="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-400"
                     >
                       View
@@ -279,7 +280,7 @@ export default function DestinationsPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation(); // prevent parent card or image from catching the click
-                            navigate(`/destinations/${dest.id}/edit`);
+                            navigate(ROUTES.destinations.edit(dest.id));
                           }}
                           className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition"
                         >

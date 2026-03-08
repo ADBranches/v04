@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import authService from '../services/auth.service';
 import adminService from '~/services/admin-service';
+import { ROUTES } from "../config/routes-config"; // ✅ add this
 
 interface User {
   id: number;
@@ -29,7 +30,7 @@ export default function RoleManagement() {
 
   useEffect(() => {
     if (!authService.isAuthenticated() || !authService.hasRole(['admin'])) {
-      navigate('/auth/login');
+      navigate(ROUTES.auth.login);
       return;
     }
     loadUsers();

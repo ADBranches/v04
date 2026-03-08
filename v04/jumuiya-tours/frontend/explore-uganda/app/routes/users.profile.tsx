@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import userService from "../services/user-service";
+import userService, { type UserProfile } from "../services/user-service"; // ✅ default + type
 import { authService } from "../services/auth.service";
-import type { UserProfile } from "../services/user-service";
 import ProfileForm from "../components/profile/profile-form";
+import { ROUTES } from "../config/routes-config";                // ✅ for redirects
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ export default function UserProfile() {
   useEffect(() => {
     const current = authService.getCurrentUser();
     if (!authService.isAuthenticated() || !current) {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
     loadProfile();

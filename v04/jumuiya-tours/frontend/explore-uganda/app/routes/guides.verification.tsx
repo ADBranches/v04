@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../services/auth.service";
 import { guideService } from "../services/guide.service";
-import { VerificationCredentials } from "../services/guide.service";
+import type { VerificationCredentials } from "../services/guide.types";
+import { ROUTES } from "../config/routes-config";
 
 export default function GuideVerification() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function GuideVerification() {
 
   useEffect(() => {
     if (!user || user.role !== "guide") {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
 
@@ -100,13 +101,13 @@ export default function GuideVerification() {
     setLoading(true);
     try {
       const credentials: VerificationCredentials = {
-        experience: formData.experience,
+        experience: parseInt(formData.experience, 10),
         certifications: formData.certifications.filter((c) => c.trim()),
       };
 
       await guideService.submitVerification(credentials, formData.documents);
       setSuccess("Verification request submitted successfully.");
-      setTimeout(() => navigate("/guides/profile"), 2000);
+      setTimeout(() => navigate(ROUTES.guides.profile), 2000);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to submit verification request.");
@@ -264,7 +265,7 @@ export default function GuideVerification() {
           {/* Back Link */}
           <div className="text-center mt-6">
             <Link
-              to="/guides/profile"
+              to={ROUTES.guides.profile}
               className="text-uganda-yellow hover:underline font-african transition-colors"
             >
               ← Back to Profile

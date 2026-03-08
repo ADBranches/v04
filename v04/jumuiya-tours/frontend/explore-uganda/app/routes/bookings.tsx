@@ -1,11 +1,11 @@
 // app/routes/bookings.tsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { bookingService } from "../services/booking.service";
-import type { Booking } from "../services/booking.types";
-import type { BookingStatus } from "../services/booking.types";
+import type { Booking, BookingStatus } from "../services/types/booking";
 
+import { ROUTES } from "../config/routes-config";
 /**
  * My Bookings Page — Displays all bookings for the logged-in user,
  * allows filtering, and supports booking actions like confirm/cancel.
@@ -29,7 +29,7 @@ export default function Bookings() {
   // ─── Auth Redirect ──────────────────────────────
   useEffect(() => {
     if (!authService.isAuthenticated()) {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
 
@@ -41,7 +41,7 @@ export default function Bookings() {
     }
 
     loadBookings();
-  }, [filters]);
+  }, [filters, navigate, user?.id]);
 
   // ─── Load Bookings ──────────────────────────────
   const loadBookings = async () => {
@@ -106,7 +106,7 @@ export default function Bookings() {
             My Bookings
           </h1>
           <button
-            onClick={() => navigate("/bookings/create")}
+            onClick={() => navigate(ROUTES.bookings.create)}
             className="bg-uganda-yellow text-uganda-black px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors font-african"
           >
             + New Booking
@@ -188,7 +188,7 @@ export default function Bookings() {
               No bookings found for your account.
             </p>
             <Link
-              to="/bookings/create"
+              to={ROUTES.bookings.create}
               className="bg-uganda-yellow text-uganda-black px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors font-african"
             >
               Create Your First Booking
@@ -245,7 +245,7 @@ export default function Bookings() {
                   <div className="flex flex-wrap gap-2 mt-4">
                     <button
                       onClick={() =>
-                        navigate(`/bookings/manage/${booking.id}`)
+                        navigate(ROUTES.bookings.manage(booking.id))
                       }
                       className="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 font-african"
                     >

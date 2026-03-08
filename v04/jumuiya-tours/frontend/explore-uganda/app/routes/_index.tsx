@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ROUTES } from "../config/routes-config"; // ✅ new
 
 export default function Home() {
   return (
@@ -15,13 +16,13 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
-              to="/destinations" 
+              to={ROUTES.destinations.list} 
               className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
             >
               Start Your Journey
             </Link>
-            <Link 
-              to="/destinations" 
+            <Link
+              to={ROUTES.destinations.list}
               className="border border-green-600 text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition-colors"
             >
               Explore Destinations

@@ -47,10 +47,11 @@ export interface GuideFilterParams {
   limit?: number;
   region?: string;
   status?: string;
+  language?: string;
   search?: string;
 }
 
 export interface VerificationCredentials {
-  experience: string;
+  experience: number;
   certifications: string[];
 }

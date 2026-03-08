@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiService } from "../services/api-service";
-import authService from "../services/auth.service";
+import { authService } from "../services/auth.service"; // ✅ match other files
 import Loading from "../components/ui/loading";
 import type { Destination } from "../services/destination.types";
-
+import { ROUTES } from "../config/routes-config";       // ✅ route config
 
 interface DestinationsResponse {
   destinations: Destination[];
@@ -103,7 +103,7 @@ export default function Home() {
                 </div>
                 <div className="flex gap-3">
                   <Link 
-                    to="/dashboard"
+                    to={ROUTES.dashboards.base}
                     className="bg-uganda-black text-uganda-yellow px-6 py-3 rounded-full font-semibold hover:bg-gray-900 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     Go to Dashboard
@@ -119,13 +119,13 @@ export default function Home() {
             ) : (
               <>
                 <Link 
-                  to="/auth/login"
+                  to={ROUTES.auth.login}
                   className="border-2 border-uganda-black text-uganda-black px-8 py-3 rounded-full font-semibold hover:bg-uganda-black hover:text-white transition-all duration-300"
                 >
                   Sign In
                 </Link>
                 <Link 
-                  to="/auth/register"
+                  to={ROUTES.auth.register}
                   className="bg-uganda-black text-uganda-yellow px-8 py-3 rounded-full font-semibold hover:bg-gray-900 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   Start Your Adventure
@@ -137,19 +137,19 @@ export default function Home() {
           {/* Quick Action Buttons */}
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              to="/destinations"
+              to={ROUTES.destinations.list}
               className="inline-flex items-center bg-white text-uganda-black px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg"
             >
               🏞️ Explore Destinations
             </Link>
             <Link
-              to="/bookings/create"
+              to={ROUTES.bookings.create}
               className="inline-flex items-center bg-white text-uganda-black px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg"
             >
               📅 Book a Tour
             </Link>
             <Link
-              to="/guides"
+              to={ROUTES.guides.list}
               className="inline-flex items-center bg-white text-uganda-black px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg"
             >
               👨‍🏫 Find Guides
@@ -279,7 +279,7 @@ export default function Home() {
                         </span>
                       </div>
                       <Link
-                        to={`/destinations/${destination.id}`}
+                        to={ROUTES.destinations.detail(destination.id)}
                         className="block w-full bg-uganda-yellow text-uganda-black text-center py-3 rounded-lg font-semibold hover:bg-yellow-400 transition-colors shadow-md hover:shadow-lg"
                       >
                         Explore Destination
@@ -292,7 +292,7 @@ export default function Home() {
               {/* View All Destinations CTA */}
               <div className="text-center">
                 <Link
-                  to="/destinations"
+                  to={ROUTES.destinations.list}
                   className="inline-flex items-center space-x-2 bg-uganda-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                 >
                   <span>View All Destinations</span>
@@ -341,7 +341,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {!user && (
               <Link 
-                to="/auth/register"
+                to={ROUTES.auth.register}
                 className="bg-uganda-black text-uganda-yellow px-8 py-4 rounded-full font-semibold hover:bg-gray-900 transition-all duration-300 shadow-lg hover:shadow-xl text-lg"
               >
                 Create Your Account

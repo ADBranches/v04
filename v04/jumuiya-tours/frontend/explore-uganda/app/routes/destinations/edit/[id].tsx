@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { authService } from "../../../services/auth.service";
 import { destinationService } from "../../../services/destination-service";
 import type { Destination, UpdateDestinationRequest } from "../../../services/destination.types";
+import { ROUTES } from "../../../config/routes-config"; // ⬅️ add this
 
 type DestinationFormData = Partial<UpdateDestinationRequest> & {
   short_description?: string;
@@ -40,7 +41,7 @@ export default function EditDestination() {
   /** Authorization check and data load **/
   useEffect(() => {
     if (!authService.isAuthenticated() || !["admin", "auditor", "guide"].includes(user?.role || "")) {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
 
@@ -69,7 +70,7 @@ export default function EditDestination() {
 
       if (!isAdminOrAuditor && !isOwner) {
         setError("You do not have permission to edit this destination");
-        navigate("/destinations");
+        navigate(ROUTES.destinations.list);
         return;
       }
 
@@ -91,7 +92,7 @@ export default function EditDestination() {
       });
     } catch (err: any) {
       setError(err.message || "Failed to load destination");
-      navigate("/destinations");
+      navigate(ROUTES.destinations.list);
     } finally {
       setLoading(false);
     }
@@ -133,7 +134,7 @@ export default function EditDestination() {
     try {
       await destinationService.updateDestination(parseInt(id), formData);
       setSuccess("Destination updated successfully");
-      setTimeout(() => navigate(`/destinations/${id}`), 1500);
+      setTimeout(() => navigate(ROUTES.destinations.detail(parseInt(id))), 1500);
     } catch (err: any) {
       setError(err.message || "Failed to update destination");
     } finally {
@@ -161,7 +162,7 @@ export default function EditDestination() {
       <div className="min-h-screen bg-safari-sand">
         <div className="container mx-auto px-4 py-8 text-center">
           <h1 className="text-2xl font-bold text-uganda-black mb-3">Destination not found</h1>
-          <Link to="/destinations" className="text-uganda-yellow hover:underline">
+          <Link to={ROUTES.destinations.list} className="text-uganda-yellow hover:underline">
             ← Back to Destinations
           </Link>
         </div>
@@ -350,7 +351,7 @@ export default function EditDestination() {
           </div>
 
           <div className="text-center mt-6">
-            <Link to={`/destinations/${id}`} className="text-uganda-yellow hover:underline font-african">
+            <Link to={id ? ROUTES.destinations.detail(parseInt(id)) : ROUTES.destinations.list} className="text-uganda-yellow hover:underline font-african">
               ← Back to Destination
             </Link>
           </div>

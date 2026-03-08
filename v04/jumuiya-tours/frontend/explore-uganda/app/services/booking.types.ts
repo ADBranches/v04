@@ -32,6 +32,7 @@ export interface CreateBookingRequest {
   destination_id: number;
   booking_date: string;
   notes?: string;
+  
 }
 
 export interface BookingResponse {

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { bookingService } from "../services/booking.service";
 import type { Booking, BookingStatus } from "../services/types/booking";
 import { format } from "date-fns";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
+import { ROUTES } from "../config/routes-config"; 
 
 export default function ManageBooking() {
   const { id } = useParams();
@@ -22,7 +23,7 @@ export default function ManageBooking() {
   // ─── Load Booking on Mount ──────────────────────────────
   useEffect(() => {
     if (!authService.isAuthenticated()) {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
     if (id) loadBooking(parseInt(id));
@@ -121,7 +122,7 @@ export default function ManageBooking() {
             Booking not found
           </h1>
           <Link
-            to="/bookings"
+            to={ROUTES.bookings.list}
             className="text-uganda-yellow hover:underline font-african"
           >
             ← Back to Bookings
@@ -136,7 +137,7 @@ export default function ManageBooking() {
     <div className="min-h-screen bg-safari-sand">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Link
-          to="/bookings"
+          to={ROUTES.bookings.list}
           className="text-uganda-yellow hover:underline mb-6 inline-block font-african"
         >
           ← Back to My Bookings
@@ -180,7 +181,7 @@ export default function ManageBooking() {
             <div>
               <h3 className="font-semibold text-uganda-black">Destination</h3>
               <Link
-                to={`/destinations/${booking.destination_id}`}
+                to={ROUTES.destinations.detail(booking.destination_id)}
                 className="text-uganda-red hover:underline"
               >
                 {booking.destination?.name}

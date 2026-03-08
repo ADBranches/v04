@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { dashboardService } from '../services/dashboard.service';
 import type { Destination } from '../services/dashboard.types';
+import { ROUTES } from "../config/routes-config";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -12,11 +13,11 @@ export default function UserDashboard() {
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
-      navigate('/auth/login');
+      navigate(ROUTES.auth.login);
       return;
     }
     loadFeaturedDestinations();
-  }, []);
+  }, [navigate]);
 
   const loadFeaturedDestinations = async () => {
     setLoading(true);
@@ -95,7 +96,7 @@ export default function UserDashboard() {
                       Price: {dest.price_range}
                     </p>
                     <button 
-                      onClick={() => navigate(`/destinations/${dest.id}`)}
+                      onClick={() => navigate(ROUTES.destinations.detail(dest.id))}
                       className="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 mt-4 font-african w-full"
                     >
                       View Details

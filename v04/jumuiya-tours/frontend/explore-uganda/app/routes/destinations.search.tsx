@@ -4,6 +4,7 @@ import AdvancedFilters from "../components/search/advanced-filters";
 import ResultsGrid from "../components/search/results-grid";
 import { useSearch } from "../hooks/use-search";
 import { useFilters } from "../hooks/use-filters";
+import { API_ENDPOINTS } from "../config/api-config";
 
 export default function DestinationSearchPage() {
   const { filters, updateFilter, resetFilters } = useFilters({
@@ -12,9 +13,10 @@ export default function DestinationSearchPage() {
     max_price: "",
   });
 
-  const { results, search, loading, error } = useSearch("/api/destinations", {
-    limit: 9,
-  });
+  const { results, search, loading, error } = useSearch(
+    API_ENDPOINTS.destinations.search,
+    { limit: 9 }
+  );
 
   const handleApplyFilters = () => search({ filters });
   const handleQueryChange = (query: string) => search({ query });

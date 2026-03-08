@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+import { ROUTES } from "../config/routes-config";
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -11,13 +12,13 @@ export default function NotFound() {
         </p>
         <div className="space-y-4">
           <Link 
-            to="/"
+            to={ROUTES.home}
             className="inline-block bg-uganda-yellow text-uganda-black px-8 py-3 rounded-full font-bold hover:bg-yellow-400 transition-colors w-full"
           >
             Go Home
           </Link>
           <Link 
-            to="/destinations"
+            to={ROUTES.destinations.list}
             className="inline-block border-2 border-uganda-yellow text-uganda-black px-8 py-3 rounded-full font-bold hover:bg-uganda-yellow transition-colors w-full"
           >
             Explore Destinations

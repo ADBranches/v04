@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import authService from "../services/auth.service";
 import adminService from "../services/admin-service";
 import AnalyticsDashboard from "../components/admin/analytics-dashboard";
+import { ROUTES } from "../config/routes-config"; // ✅ add this
 
 interface AnalyticsData {
   total_users?: number;
@@ -27,7 +28,7 @@ export default function SystemAnalytics() {
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (!authService.isAuthenticated() || user?.role !== "admin") {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
     loadAnalytics();

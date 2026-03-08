@@ -1,5 +1,5 @@
-import { apiMethods } from "./api-service.js";
-import authService from "./auth.service.ts";
+import { apiMethods } from "./api-service";
+import authService from "./auth.service";
 
 /* ──────────── TYPES ──────────── */
 export interface UserProfile {

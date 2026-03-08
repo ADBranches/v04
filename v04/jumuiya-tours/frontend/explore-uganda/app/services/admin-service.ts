@@ -1,5 +1,6 @@
-import { apiMethods } from './api-service.js';
-import authService from './auth.service.ts';
+// admin-service.ts
+import { apiMethods } from './api-service';
+import authService from './auth.service';
 
 export interface AnalyticsData {
   totalUsers: number;

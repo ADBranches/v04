@@ -13,6 +13,7 @@ declare module '~/config/app-config' {
     author: string;
     apiBaseUrl: string;
     endpoints: typeof ENDPOINTS;
+    ENABLE_REGISTRATION: boolean; // <-- added
     theme: {
       primary: string;
       black: string;

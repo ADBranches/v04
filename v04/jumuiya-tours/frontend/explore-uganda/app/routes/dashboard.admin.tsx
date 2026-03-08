@@ -118,14 +118,16 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout> {/* WRAPPED WITH LAYOUT */}
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-uganda-yellow mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
+      <ProtectedRoute requiredRole="admin">
+        <DashboardLayout>
+          <div className="flex items-center justify-center min-h-96">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-uganda-yellow mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
+            </div>
           </div>
-        </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </ProtectedRoute>
     );
   }
 

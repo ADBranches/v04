@@ -4,6 +4,7 @@ import { destinationService } from "../../services/destination-service";
 import { authService } from "../../services/auth.service";
 import type { Destination } from "../../services/dashboard.types";
 import { StarIcon } from "@heroicons/react/24/solid";
+import { ROUTES } from "../../config/routes-config";
 
 export default function DestinationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +28,7 @@ export default function DestinationDetail() {
         const response = await destinationService.getDestination(Number(id));
         setDestination(response.destination);
       } catch {
-        if (typeof window !== "undefined") navigate("/404");
+        if (typeof window !== "undefined") navigate(ROUTES.notFound);
       } finally {
         setLoading(false);
       }
@@ -47,7 +48,7 @@ export default function DestinationDetail() {
     try {
       await destinationService.deleteDestination(destination.id);
       setMessage({ type: "success", text: "Destination deleted successfully" });
-      setTimeout(() => navigate("/destinations"), 2000);
+      setTimeout(() => navigate(ROUTES.destinations.list), 2000);
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -131,7 +132,7 @@ export default function DestinationDetail() {
         <h1 className="text-xl font-semibold text-uganda-black mb-3">
           Destination not found
         </h1>
-        <Link to="/destinations" className="text-uganda-yellow hover:underline">
+        <Link to={ROUTES.destinations.list} className="text-uganda-yellow hover:underline">
           ← Back to Destinations
         </Link>
       </div>
@@ -141,7 +142,7 @@ export default function DestinationDetail() {
     <div className="min-h-screen bg-safari-sand">
       <div className="container mx-auto px-4 py-10">
         <Link
-          to="/destinations"
+          to={ROUTES.destinations.list}
           className="text-uganda-yellow hover:underline mb-8 inline-block"
         >
           ← Back to Destinations
@@ -245,7 +246,7 @@ export default function DestinationDetail() {
               {authService.isAuthenticated() && destination.status === "approved" && (
                 <button
                   onClick={() =>
-                    navigate(`/bookings/create?destination=${destination.id}`)
+                    navigate(`${ROUTES.bookings.create}?destination=${destination.id}`)
                   }
                   className="btn-uganda px-6 py-3"
                 >
@@ -256,7 +257,7 @@ export default function DestinationDetail() {
               {canEdit && (
                 <>
                   <button
-                    onClick={() => navigate(`/destinations/edit/${destination.id}`)}
+                    onClick={() => navigate(ROUTES.destinations.edit(destination.id))}
                     className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
                   >
                     Edit
@@ -300,7 +301,7 @@ export default function DestinationDetail() {
         </div>
 
         <div className="text-center mt-6">
-          <Link to="/destinations" className="text-uganda-yellow hover:underline">
+          <Link to={ROUTES.destinations.list} className="text-uganda-yellow hover:underline">
             ← Back to Destinations
           </Link>
         </div>

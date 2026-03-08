@@ -9,6 +9,7 @@ import {
   CurrencyDollarIcon,
   StarIcon,
 } from "@heroicons/react/24/solid";
+import { ROUTES } from "../config/routes-config";
 
 export default function GuideProfile() {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +27,7 @@ export default function GuideProfile() {
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Failed to load guide details");
-        navigate("/404");
+        navigate(ROUTES.errors.notFound);
       } finally {
         setLoading(false);
       }
@@ -71,7 +72,7 @@ export default function GuideProfile() {
       <div className="min-h-screen bg-safari-sand">
         <div className="container mx-auto px-4 py-12 text-center">
           <h1 className="text-2xl font-bold text-uganda-black mb-4">Guide not found</h1>
-          <Link to="/guides" className="text-uganda-yellow hover:underline">
+          <Link to={ROUTES.guides.list} className="text-uganda-yellow hover:underline">
             ← Back to Guides
           </Link>
         </div>
@@ -194,7 +195,7 @@ export default function GuideProfile() {
                 <h3 className="font-semibold text-uganda-black mb-4">Book This Guide</h3>
                 {authService.isAuthenticated() ? (
                   <button
-                    onClick={() => navigate(`/bookings/create?guide_id=${guide.id}`)}
+                    onClick={() => navigate(`${ROUTES.bookings.create}?guide_id=${guide.id}`)}
                     className="w-full bg-uganda-yellow text-uganda-black px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors font-african mb-3"
                   >
                     Book Now
@@ -205,7 +206,7 @@ export default function GuideProfile() {
                       Sign in to book this guide
                     </p>
                     <button
-                      onClick={() => navigate("/auth/login")}
+                      onClick={() => navigate(ROUTES.auth.login)}
                       className="w-full bg-uganda-yellow text-uganda-black px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors font-african"
                     >
                       Sign In to Book
@@ -236,7 +237,7 @@ export default function GuideProfile() {
         {/* Back Link */}
         <div className="text-center mt-8">
           <Link
-            to="/guides"
+            to={ROUTES.guides.list}
             className="text-uganda-yellow hover:underline font-african transition-colors"
           >
             ← Back to All Guides

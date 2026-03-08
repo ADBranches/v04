@@ -4,6 +4,7 @@ import { authService } from "../services/auth.service";
 import { moderationService } from "../services/moderation.service";
 import type { ModerationLog } from "../services/moderation.types";
 import ReviewPanel from "../components/moderation/review-panel";
+import { ROUTES } from "../config/routes-config";
 
 export default function ModerationReview() {
   const { id } = useParams<{ id: string }>();
@@ -18,7 +19,7 @@ export default function ModerationReview() {
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (!authService.isAuthenticated() || !["admin", "auditor"].includes(user?.role || "")) {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
     if (id) loadModeration();
@@ -55,7 +56,7 @@ export default function ModerationReview() {
         setSuccess("✏️ Revision requested successfully");
       }
 
-      setTimeout(() => navigate("/moderation/pending"), 1500);
+      setTimeout(() => navigate(ROUTES.moderation.pending), 1500);
     } catch (err: any) {
       setError(err.message || "Action failed");
     } finally {
@@ -90,7 +91,7 @@ export default function ModerationReview() {
       <div className="min-h-screen bg-safari-sand flex flex-col items-center justify-center font-african">
         <h1 className="text-2xl font-bold text-uganda-black mb-4">Moderation request not found</h1>
         <button
-          onClick={() => navigate("/moderation/pending")}
+          onClick={() => navigate(ROUTES.moderation.pending)}
           className="text-uganda-yellow hover:underline font-african"
         >
           ← Back to Pending Content
@@ -168,7 +169,7 @@ export default function ModerationReview() {
         {/* Back Button */}
         <div className="text-center">
           <button
-            onClick={() => navigate("/moderation/pending")}
+            onClick={() => navigate(ROUTES.moderation.pending)}
             className="text-uganda-yellow hover:underline font-african"
           >
             ← Back to Pending Content

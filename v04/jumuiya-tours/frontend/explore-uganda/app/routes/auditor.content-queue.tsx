@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import authService from "../services/auth.service";
 import ModerationService from "../services/moderation.service";
 import ModerationQueue from "../components/auditor/moderation-queue";
+import { ROUTES } from "../config/routes-config"; // ✅ add this
 
 /**
  * 🧾 ContentQueue
@@ -25,7 +26,7 @@ export default function ContentQueue() {
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (!authService.isAuthenticated() || user?.role !== "auditor") {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
     loadContent();
@@ -110,7 +111,7 @@ export default function ContentQueue() {
             </p>
           </div>
           <Link
-            to="/auditor/dashboard"
+            to={ROUTES.dashboards.auditor}
             className="text-sm text-uganda-yellow hover:underline"
           >
             ← Back to Dashboard

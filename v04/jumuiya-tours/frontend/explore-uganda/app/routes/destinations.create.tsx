@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../services/auth.service";
 import { destinationService } from "../services/destination-service";
 import type { CreateDestinationRequest } from "../services/destination.types";
+import { ROUTES } from "../config/routes-config";
 
 interface DestinationFormData extends CreateDestinationRequest {
   short_description?: string;
@@ -30,7 +31,7 @@ export default function CreateDestination() {
   // Redirect unauthorized users
   useEffect(() => {
     if (!authService.isAuthenticated() || !["admin", "auditor", "guide"].includes(user?.role || "")) {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
     }
   }, [user, navigate]);
 
@@ -122,7 +123,8 @@ export default function CreateDestination() {
 
       setTimeout(() => {
         navigate(
-          currentUser?.role === "guide" ? "/dashboard/guide" : "/destinations"
+          currentUser?.role === "guide" ? 
+          ROUTES.dashboards.guide : ROUTES.destinations.list
         );
       }, 1800);
     } catch (err: any) {
@@ -351,7 +353,7 @@ export default function CreateDestination() {
 
           <div className="text-center mt-6">
             <Link
-              to="/destinations"
+              to={ROUTES.destinations.list}
               className="text-uganda-yellow hover:underline font-african"
             >
               ← Back to Destinations

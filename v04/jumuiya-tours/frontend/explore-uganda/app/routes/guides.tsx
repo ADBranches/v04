@@ -1,9 +1,11 @@
+// guides.tsx
 import { useState, useEffect } from "react";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { guideService } from "../services/guide.service";
 import type { Guide, GuideFilterParams } from "../services/guide.types";
 import { authService } from "../services/auth.service";
+import { ROUTES } from "../config/routes-config";
 
 // ✅ Shared UI components
 import Loader from "../components/ui/loader";
@@ -18,7 +20,7 @@ export default function Guides() {
     limit: 9,
     region: "",
     status: "",
-    // language: "",
+    language: "",
     search: "",
   });
   const [pagination, setPagination] = useState({
@@ -230,7 +232,7 @@ export default function Guides() {
 
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => navigate(`/guides/${guide.id}`)}
+                        onClick={() => navigate(ROUTES.guides.detail(guide.id))}
                         className="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors text-sm font-african"
                       >
                         View
@@ -238,7 +240,7 @@ export default function Guides() {
 
                       {authService.isAuthenticated() && (
                         <button
-                          onClick={() => navigate(`/bookings/create?guide_id=${guide.id}`)}
+                          onClick={() => navigate(`${ROUTES.bookings.create}?guide_id=${guide.id}`)}
                           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-african"
                         >
                           Book

@@ -3,7 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../services/auth.service";
 import { bookingService } from "../services/booking.service";
 import { destinationService } from "../services/destination-service";
-import type { Destination } from "../services/types/destinations";
+// import type { Destination } from "../services/types/destinations";
+import type { Destination } from "../services/dashboard.types";
+import { ROUTES } from "../config/routes-config";
 
 interface BookingFormData {
   destination_id: number;
@@ -39,7 +41,7 @@ export default function CreateBooking() {
 
     const init = async () => {
       if (!user || user.role !== "user") {
-        navigate("/auth/login");
+        navigate(ROUTES.auth.login);
         return;
       }
       if (mounted) {
@@ -91,9 +93,19 @@ export default function CreateBooking() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    if (name === "region") setRegion(value);
+    if (name === "region") {
+      setRegion(value);
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        name === "destination_id" || name === "num_people"
+          ? Number(value)
+          : value,
+    }));
   };
 
   // ─── Submit Form ──────────────────────────────────
@@ -117,14 +129,12 @@ export default function CreateBooking() {
     try {
       await bookingService.createBooking({
         destination_id: formData.destination_id,
-        start_date: formData.start_date,
-        end_date: formData.end_date,
-        num_people: formData.num_people,
-        notes: formData.notes.trim(),
+        booking_date: formData.start_date, // using your start_date as booking_date
+        notes: formData.notes.trim() || undefined,
       });
 
       setSuccess("Booking created successfully! Awaiting guide confirmation.");
-      setTimeout(() => navigate("/bookings"), 2000);
+      setTimeout(() => navigate(ROUTES.bookings.list), 2000);
     } catch (err: any) {
       setError(err.message || "Failed to create booking");
     } finally {
@@ -184,7 +194,7 @@ export default function CreateBooking() {
                   id="destination_id"
                   name="destination_id"
                   required
-                  value={formData.destination_id}
+                  value={formData.destination_id || ""}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-uganda-yellow"
                 >
@@ -305,7 +315,7 @@ export default function CreateBooking() {
           {/* Back Link */}
           <div className="text-center mt-6">
             <Link
-              to="/bookings"
+              to={ROUTES.bookings.list}
               className="text-uganda-yellow hover:underline font-african"
             >
               ← Back to My Bookings

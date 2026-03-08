@@ -1,3 +1,4 @@
+// app/services/types/destinations
 export interface Destination {
   id: number;
   name: string;

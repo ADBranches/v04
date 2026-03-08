@@ -4,6 +4,7 @@ import { authService } from "../services/auth.service";
 import { moderationService } from "../services/moderation.service";
 import type { ModerationLog, ModerationFilterParams } from "../services/moderation.types";
 import ModerationItem from "../components/moderation/moderation-item";
+import { ROUTES } from "../config/routes-config";
 
 export default function ModerationPending() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function ModerationPending() {
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (!authService.isAuthenticated() || !["admin", "auditor"].includes(user?.role || "")) {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
     loadPendingContent();

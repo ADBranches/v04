@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ROUTES } from "../config/routes-config";
 
 export default function ServerError() {
   const handleRetry = () => {
@@ -14,8 +15,8 @@ export default function ServerError() {
           Something went wrong on our end. Please try again later.
         </p>
         <div className="space-y-4">
-          <Link 
-            to="/"
+          <Link
+            to={ROUTES.home}
             className="inline-block bg-uganda-yellow text-uganda-black px-8 py-3 rounded-full font-bold hover:bg-yellow-400 transition-colors w-full"
           >
             Go Home

@@ -5,6 +5,7 @@ import { guideService, type Guide } from "../services/guide.service";
 import type { GuideVerification } from "../services/guide.types";
 import { format } from "date-fns";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
+import { ROUTES } from "../config/routes-config";
 
 export default function MyGuideProfile() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function MyGuideProfile() {
 
   useEffect(() => {
     if (!user || user.role !== "guide") {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
 
@@ -80,7 +81,7 @@ export default function MyGuideProfile() {
     return (
       <div className="min-h-screen bg-safari-sand text-center py-20">
         <p className="text-gray-700 mb-4">No guide profile found.</p>
-        <Link to="/guides" className="text-uganda-yellow hover:underline">
+        <Link to={ROUTES.guides.list} className="text-uganda-yellow hover:underline">
           ← Back to Guides
         </Link>
       </div>
@@ -119,7 +120,7 @@ export default function MyGuideProfile() {
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-uganda-black">Profile Details</h2>
             <button
-              onClick={() => navigate("/guides/verification")}
+              onClick={() => navigate(ROUTES.guides.verification)}
               className="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors text-sm font-african"
             >
               {guide.verification_status === "unverified" ? "Apply for Verification" : "Update Verification"}
@@ -240,7 +241,7 @@ export default function MyGuideProfile() {
             <div className="text-center py-6">
               <p className="text-gray-600 mb-4">You haven’t submitted any verification yet.</p>
               <Link
-                to="/guides/verification"
+                to={ROUTES.guides.verification}
                 className="bg-uganda-yellow text-uganda-black px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors font-african inline-block"
               >
                 Submit Verification
@@ -252,7 +253,7 @@ export default function MyGuideProfile() {
         {/* Back Link */}
         <div className="text-center mt-8">
           <Link
-            to="/dashboard/guide"
+            to={ROUTES.dashboards.guide}
             className="text-uganda-yellow hover:underline font-african transition-colors"
           >
             ← Back to Dashboard

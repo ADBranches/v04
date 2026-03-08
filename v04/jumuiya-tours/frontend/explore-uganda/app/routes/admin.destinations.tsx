@@ -5,6 +5,7 @@ import authService from "../services/auth.service";
 import destinationService from "../services/destination-service";
 import adminService from "../services/admin-service";
 
+import { ROUTES } from "../config/routes-config";
 interface Destination {
   id: number;
   name: string;
@@ -23,7 +24,7 @@ export default function AdminDestinations() {
 
   useEffect(() => {
     if (!authService.isAuthenticated() || !authService.hasRole(["admin"])) {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
     loadDestinations();
@@ -132,7 +133,7 @@ export default function AdminDestinations() {
 
             <div className="mt-4 flex flex-wrap gap-2">
               <Link
-                to={`/destinations/${d.id}`}
+                to={ROUTES.destinations.detail(d.id)}
                 className="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg hover:bg-yellow-400 transition"
               >
                 View

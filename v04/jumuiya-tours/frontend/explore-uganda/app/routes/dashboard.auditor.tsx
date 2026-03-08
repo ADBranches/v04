@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { dashboardService } from '../services/dashboard.service';
 import type { Destination } from '../services/dashboard.types';
+import { ROUTES } from "../config/routes-config";
 
 export default function AuditorDashboard() {
   const navigate = useNavigate();
@@ -14,12 +15,12 @@ export default function AuditorDashboard() {
 
   useEffect(() => {
     const user = authService.getCurrentUser();
-    if (!authService.isAuthenticated() || user?.role !== 'auditor') {
-      navigate('/auth/login');
+    if (!authService.isAuthenticated() || user?.role !== "auditor") {
+      navigate(ROUTES.auth.login);
       return;
     }
     loadDashboardData();
-  }, []);
+  }, [navigate]);
 
   const loadDashboardData = async () => {
     setLoading(true);

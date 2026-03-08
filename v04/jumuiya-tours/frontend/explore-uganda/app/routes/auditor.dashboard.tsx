@@ -4,6 +4,7 @@ import authService from "../services/auth.service";
 import ModerationService from "../services/moderation.service";
 import AnalyticsDashboard from "../components/admin/analytics-dashboard";
 
+import { ROUTES } from "../config/routes-config";
 /**
  * 🔍 AuditorDashboard
  * Provides auditors with a real-time overview of moderation statistics:
@@ -31,7 +32,7 @@ export default function AuditorDashboard() {
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (!authService.isAuthenticated() || user?.role !== "auditor") {
-      navigate("/auth/login");
+      navigate(ROUTES.auth.login);
       return;
     }
     loadDashboard();
