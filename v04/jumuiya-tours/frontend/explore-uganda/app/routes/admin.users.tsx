@@ -1,7 +1,12 @@
+// app/routes/admin.users.tsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import userService from '../services/user-service';
 import authService from '../services/auth.service';
+import { useHydrated } from "../hooks/useHydrated";
+import { Navigate } from "react-router-dom";
+
+// const user = authService.getCurrentUser();
 
 interface User {
   id: number;
@@ -39,6 +44,7 @@ export default function AdminUsers() {
     verified_guides: 0,
     pending_guides: 0
   });
+  const hydrated = useHydrated();
 
   const loadUsers = async () => {
     try {
@@ -83,12 +89,30 @@ export default function AdminUsers() {
     setFilters(prev => ({ ...prev, page: 1 }));
   };
 
-  if (!authService.hasRole('admin')) {
+  if (!hydrated) {
+    return (
+      <div className="p-8">
+        <p className="text-gray-600">Checking admin access…</p>
+      </div>
+    );
+  }
+
+  const user = authService.getCurrentUser();
+
+  if (!user) {
+    // Not logged in → go to login
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  if (user.role !== "admin") {
+    // Logged in but not admin → real 403 experience
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
           <h2 className="text-red-800 font-semibold">Access Denied</h2>
-          <p className="text-red-600 mt-2">You don't have permission to access this page.</p>
+          <p className="text-red-600 mt-2">
+            You don't have permission to access this page.
+          </p>
         </div>
       </div>
     );

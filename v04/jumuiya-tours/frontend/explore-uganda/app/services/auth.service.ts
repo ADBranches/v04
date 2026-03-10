@@ -404,24 +404,36 @@ class AuthService {
   }
 
   // Navigation helpers
+  // // Navigation helpers
+  // getDashboardPath(): string {
+  //   const user = this.getCurrentUser();
+  //   if (!user) return '/auth/login';
+
+  //   // Map user roles to the actual existing route files
+  //   const dashboards: Record<string, string> = {
+  //     admin: '/dashboard/admin',
+  //     auditor: '/dashboard/auditor',
+  //     guide: '/dashboard/guide',
+  //     user: '/dashboard/user',
+  //   };
+
+  //   // Ensure we always redirect to a valid dashboard route
+  //   const role = user.role?.toLowerCase?.();
+  //   return dashboards[role] || '/dashboard/user';
+  // }
+
   // Navigation helpers
   getDashboardPath(): string {
     const user = this.getCurrentUser();
-    if (!user) return '/auth/login';
 
-    // Map user roles to the actual existing route files
-    const dashboards: Record<string, string> = {
-      admin: '/dashboard/admin',
-      auditor: '/dashboard/auditor',
-      guide: '/dashboard/guide',
-      user: '/dashboard/user',
-    };
+    // If not authenticated, send to login
+    if (!user) return "/auth/login";
 
-    // Ensure we always redirect to a valid dashboard route
-    const role = user.role?.toLowerCase?.();
-    return dashboards[role] || '/dashboard/user';
+    // If authenticated, ALWAYS go through the redirect route.
+    // routes/dashboard.redirect.tsx will decide:
+    //   /dashboard/admin | /dashboard/guide | /dashboard/auditor | /dashboard/user
+    return "/dashboard";
   }
-
 
   getDefaultRoute(): string {
     if (!this.isAuthenticated()) {

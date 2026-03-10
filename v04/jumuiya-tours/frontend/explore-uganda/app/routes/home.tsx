@@ -5,6 +5,7 @@ import { authService } from "../services/auth.service"; // ✅ match other files
 import Loading from "../components/ui/loading";
 import type { Destination } from "../services/destination.types";
 import { ROUTES } from "../config/routes-config";       // ✅ route config
+import { useHydrated } from "../hooks/useHydrated"; 
 
 interface DestinationsResponse {
   destinations: Destination[];
@@ -14,9 +15,12 @@ interface DestinationsResponse {
 
 export default function Home() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
-  const [user, setUser] = useState(authService.getCurrentUser());
+  // const [user, setUser] = useState(authService.getCurrentUser());
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const hydrated = useHydrated();
 
   useEffect(() => {
     const fetchDestinations = async () => {
@@ -40,6 +44,18 @@ export default function Home() {
     };
 
     fetchDestinations();
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;             // only run after client hydration
+    const currentUser = authService.getCurrentUser();
+    setUser(currentUser || null);
+  }, [hydrated]);
+
+  useEffect(() => {
+    // ✅ Runs only on the client, after hydration
+    const currentUser = authService.getCurrentUser();
+    setUser(currentUser);
   }, []);
 
   useEffect(() => {

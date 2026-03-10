@@ -1,4 +1,4 @@
-import { type RouteConfig, index } from "@react-router/dev/routes";
+import { type RouteConfig, index, prefix, layout, route } from "@react-router/dev/routes";
 
 export default [
   // ─── Home route ────────────────────────────────
@@ -39,6 +39,11 @@ export default [
   { path: "bookings/create", file: "routes/bookings.create.tsx" },
   { path: "bookings/manage/:id", file: "routes/bookings.manage.$id.tsx" },
 
+  // ─── Moderation routes (auditor/admin) ─────────
+  { path: "moderation/pending", file: "routes/moderation.pending.tsx" },
+  { path: "moderation/queue", file: "routes/moderation.queue.tsx" }, // <- new file
+  { path: "moderation/review/:id", file: "routes/moderation.review.$id.tsx" },
+  
   // ─── Admin nested routes ───────────────────────
   {
     path: "/admin",
@@ -69,6 +74,9 @@ export default [
   },
   // ─── Error routes ──────────────────────────────
   { path: "500", file: "routes/500.tsx" },
+  
+  // ─── Debug / API playground ───────────────────
+  { path: "debug/api", file: "routes/debug.api.tsx" },
   
   // ─── 404 catch-all (MUST remain last) ──────────
   { path: "*", file: "routes/404.tsx" },

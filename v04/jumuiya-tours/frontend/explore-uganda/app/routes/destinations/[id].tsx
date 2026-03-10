@@ -1,3 +1,4 @@
+// routes/destinations/[id].tsx
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { destinationService } from "../../services/destination-service";

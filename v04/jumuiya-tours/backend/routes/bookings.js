@@ -183,6 +183,52 @@ router.get('/',
   }
 );
 
+// Get user's bookings (convenience endpoint)
+router.get('/my-bookings', 
+  authenticateToken,
+  requireRole(['user']),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      const bookings = await prisma.booking.findMany({
+        where: { user_id: userId },
+        include: {
+          destination: {
+            select: {
+              name: true,
+              location: true,
+              images: true,
+              price_range: true
+            }
+          },
+          guide: {
+            select: {
+              name: true,
+              email: true
+            }
+          }
+        },
+        orderBy: { created_at: 'desc' }
+      });
+
+      res.json({
+        success: true,
+        bookings: bookings,
+        count: bookings.length
+      });
+
+    } catch (error) {
+      console.error('Get user bookings error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: 'Failed to fetch user bookings',
+        code: 'FETCH_USER_BOOKINGS_ERROR'
+      });
+    }
+  }
+);
+
 // Get a single booking
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
@@ -530,52 +576,6 @@ router.put('/:id',
         success: false,
         error: 'Failed to update booking',
         code: 'UPDATE_BOOKING_ERROR'
-      });
-    }
-  }
-);
-
-// Get user's bookings (convenience endpoint)
-router.get('/my-bookings', 
-  authenticateToken,
-  requireRole(['user']),
-  async (req, res) => {
-    try {
-      const userId = req.user.id;
-
-      const bookings = await prisma.booking.findMany({
-        where: { user_id: userId },
-        include: {
-          destination: {
-            select: {
-              name: true,
-              location: true,
-              images: true,
-              price_range: true
-            }
-          },
-          guide: {
-            select: {
-              name: true,
-              email: true
-            }
-          }
-        },
-        orderBy: { created_at: 'desc' }
-      });
-
-      res.json({
-        success: true,
-        bookings: bookings,
-        count: bookings.length
-      });
-
-    } catch (error) {
-      console.error('Get user bookings error:', error);
-      res.status(500).json({ 
-        success: false,
-        error: 'Failed to fetch user bookings',
-        code: 'FETCH_USER_BOOKINGS_ERROR'
       });
     }
   }

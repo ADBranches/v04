@@ -138,6 +138,29 @@ class BookingService {
     }
   }
 
+  // ─── MY BOOKINGS (current logged-in user) ─────────────────────
+  async getMyBookings(): Promise<BookingResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/my-bookings`, {
+        headers: this.getAuthHeaders(),
+      });
+
+      const data: any = await this.handleResponse(response);
+
+      // Backend returns: { success, bookings, count }
+      // Normalize into BookingResponse shape used on frontend
+      return {
+        bookings: data.bookings ?? [],
+        total: typeof data.count === "number" ? data.count : data.bookings?.length ?? 0,
+        page: 1,
+        limit: typeof data.count === "number" ? data.count : data.bookings?.length ?? 0,
+      };
+    } catch (err: any) {
+      console.error("🔥 Failed to fetch my bookings:", err);
+      throw new Error(err.message || "Failed to fetch your bookings.");
+    }
+  }
+
   // ─── GET BOOKING ───────────────────────────────────────────────
   async getBooking(id: number | string): Promise<Booking> {
     try {

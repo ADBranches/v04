@@ -14,7 +14,7 @@ export const ROUTES = {
     list: "/destinations",
     detail: (id: number | string) => `/destinations/${id}`,
     create: "/destinations/create",
-    edit: (id: number | string) => `/destinations/${id}/edit`,
+    edit: (id: number | string) => `/destinations/edit/${id}`,
   },
 
   guides: {

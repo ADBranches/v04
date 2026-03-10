@@ -1,7 +1,7 @@
 // app/components/navigation/protected-route.tsx
 
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router";
 import authService from "../../services/auth.service";
 
 type Role = "admin" | "auditor" | "guide" | "user";
