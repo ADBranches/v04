@@ -1,12 +1,9 @@
 // app/routes/admin.users.tsx
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import userService from '../services/user-service';
+import React, { useEffect, useState } from 'react';
+import adminService from "../services/admin-service";
 import authService from '../services/auth.service';
 import { useHydrated } from "../hooks/useHydrated";
 import { Navigate } from "react-router-dom";
-
-// const user = authService.getCurrentUser();
 
 interface User {
   id: number;
@@ -23,7 +20,16 @@ interface UserFilters {
   limit?: number;
   search?: string;
   role?: string;
+  // NOTE: UI keeps this, but backend (current) doesn't support it on /admin/users
   guide_status?: string;
+}
+
+interface AnalyticsData {
+  totalUsers: number;
+  totalDestinations: number;
+  pendingGuides: number;
+  totalBookings: number;
+  revenue: number;
 }
 
 export default function AdminUsers() {
@@ -35,25 +41,45 @@ export default function AdminUsers() {
     limit: 10,
     search: '',
     role: '',
-    guide_status: ''
+    guide_status: '' // kept in UI; not sent to backend
   });
-  const [stats, setStats] = useState({
-    total_users: 0,
-    active_users: 0,
-    new_users_today: 0,
-    verified_guides: 0,
-    pending_guides: 0
+
+  const [stats, setStats] = useState<AnalyticsData>({
+    totalUsers: 0,
+    totalDestinations: 0,
+    pendingGuides: 0,
+    totalBookings: 0,
+    revenue: 0
   });
+
   const hydrated = useHydrated();
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await userService.getUsers(filters);
-      setUsers(response.users || response.data || []);
-      
-      // Load stats if available
-      const statsData = await userService.getUserStats();
+
+      // ✅ Only pass backend-supported filters
+      const { page, limit, role, search } = filters;
+      const safeParams: Record<string, any> = {};
+      if (page) safeParams.page = page;
+      if (limit) safeParams.limit = limit;
+      if (role) safeParams.role = role;
+      if (search) safeParams.search = search;
+
+      const response = await adminService.getUsers(safeParams);
+
+      // Handle common wrapping shapes defensively
+      const list =
+        (response as any)?.users ??
+        (response as any)?.data?.users ??
+        (response as any)?.data ??
+        response ??
+        [];
+
+      setUsers(Array.isArray(list) ? list : []);
+
+      // Admin analytics / stats
+      const statsData = await adminService.getAnalytics();
       setStats(statsData);
     } catch (err: any) {
       setError(err.message || 'Failed to load users');
@@ -62,14 +88,21 @@ export default function AdminUsers() {
     }
   };
 
+  // ✅ Gate API calls: only after hydration AND when user is admin
   useEffect(() => {
-    loadUsers();
-  }, [filters]);
+    if (!hydrated) return;
+
+    const user = authService.getCurrentUser();
+    if (!user || user.role !== 'admin') return;
+
+    void loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, filters.page, filters.limit, filters.search, filters.role]);
 
   const handleRoleUpdate = async (userId: number, newRole: string) => {
     try {
-      await userService.updateUserRole(userId, newRole);
-      await loadUsers(); // Reload users to reflect changes
+      await adminService.updateUserRole(userId, newRole);
+      await loadUsers(); // refresh after update
     } catch (err: any) {
       setError(err.message || 'Failed to update user role');
     }
@@ -77,8 +110,9 @@ export default function AdminUsers() {
 
   const handleGuideStatusUpdate = async (userId: number, status: string) => {
     try {
-      await userService.updateUser(userId, { guide_status: status });
-      await loadUsers(); // Reload users to reflect changes
+      // Backend should support updating guide_status via PUT /admin/users/:id
+      await adminService.updateUser(userId, { guide_status: status });
+      await loadUsers(); // refresh after update
     } catch (err: any) {
       setError(err.message || 'Failed to update guide status');
     }
@@ -89,6 +123,7 @@ export default function AdminUsers() {
     setFilters(prev => ({ ...prev, page: 1 }));
   };
 
+  // Hydration guard
   if (!hydrated) {
     return (
       <div className="p-8">
@@ -97,15 +132,15 @@ export default function AdminUsers() {
     );
   }
 
-  const user = authService.getCurrentUser();
+  const currentUser = authService.getCurrentUser();
 
-  if (!user) {
-    // Not logged in → go to login
+  // Not logged in → go to login
+  if (!currentUser) {
     return <Navigate to="/auth/login" replace />;
   }
 
-  if (user.role !== "admin") {
-    // Logged in but not admin → real 403 experience
+  // Logged in but not admin → show 403 UX
+  if (currentUser.role !== "admin") {
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -127,31 +162,33 @@ export default function AdminUsers() {
           <p className="text-gray-600 mt-2">Manage users, roles, and guide applications</p>
         </div>
         <div className="bg-uganda-yellow px-4 py-2 rounded-lg">
-          <span className="text-uganda-black font-semibold">Total Users: {stats.total_users}</span>
+          <span className="text-uganda-black font-semibold">Total Users: {stats.totalUsers}</span>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-gray-900">{stats.total_users}</div>
+          <div className="text-2xl font-bold text-gray-900">{stats.totalUsers}</div>
           <div className="text-gray-600 text-sm">Total Users</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-green-600">{stats.active_users}</div>
-          <div className="text-gray-600 text-sm">Active Users</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-blue-600">{stats.new_users_today}</div>
-          <div className="text-gray-600 text-sm">New Today</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-green-600">{stats.verified_guides}</div>
-          <div className="text-gray-600 text-sm">Verified Guides</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-yellow-600">{stats.pending_guides}</div>
+          <div className="text-2xl font-bold text-green-600">{stats.pendingGuides}</div>
           <div className="text-gray-600 text-sm">Pending Guides</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="text-2xl font-bold text-blue-600">{stats.totalDestinations}</div>
+          <div className="text-gray-600 text-sm">Destinations</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="text-2xl font-bold text-purple-600">{stats.totalBookings}</div>
+          <div className="text-gray-600 text-sm">Bookings</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="text-2xl font-bold text-yellow-600">
+            {Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(stats.revenue ?? 0)}
+          </div>
+          <div className="text-gray-600 text-sm">Revenue</div>
         </div>
       </div>
 
@@ -182,6 +219,7 @@ export default function AdminUsers() {
               <option value="user">User</option>
             </select>
           </div>
+          {/* Kept for UI parity; not sent to backend in this pass */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Guide Status</label>
             <select
@@ -264,7 +302,7 @@ export default function AdminUsers() {
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {user.role === 'guide' && (
+                      {user.role === 'guide' ? (
                         <select
                           value={user.guide_status || 'unverified'}
                           onChange={(e) => handleGuideStatusUpdate(user.id, e.target.value)}
@@ -274,8 +312,7 @@ export default function AdminUsers() {
                           <option value="pending">Pending</option>
                           <option value="verified">Verified</option>
                         </select>
-                      )}
-                      {user.role !== 'guide' && (
+                      ) : (
                         <span className="text-sm text-gray-500">N/A</span>
                       )}
                     </td>
@@ -299,7 +336,7 @@ export default function AdminUsers() {
             </table>
           </div>
         )}
-        
+
         {!loading && users.length === 0 && (
           <div className="p-8 text-center text-gray-500">
             No users found matching your criteria.

@@ -1,4 +1,4 @@
-import { type RouteConfig, index, prefix, layout, route } from "@react-router/dev/routes";
+import { type RouteConfig, index } from "@react-router/dev/routes";
 
 export default [
   // ─── Home route ────────────────────────────────
@@ -52,6 +52,10 @@ export default [
       { path: "analytics", file: "routes/admin.analytics.tsx" },
       { path: "roles", file: "routes/admin.roles.tsx" },
       { path: "users", file: "routes/admin.users.tsx" },
+      { path: "destinations", file: "routes/admin.destinations.tsx" },
+      { path: "approvals", file: "routes/admin.approvals.tsx" },
+      { path: "activity", file: "routes/admin.activity.tsx" },
+      { path: "settings", file: "routes/admin.settings.tsx" },
     ],
   },
 

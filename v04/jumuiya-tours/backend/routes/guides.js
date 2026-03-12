@@ -14,8 +14,9 @@ const router = express.Router();
 
 // Apply as guide (User only)
 // Apply as guide (Use canBecomeGuide middleware)
-router.post('/apply', 
-  canBecomeGuide, // ← CHANGED: Use canBecomeGuide instead of requireRole(['user'])
+router.post('/apply',
+  authenticateToken,
+  canBecomeGuide,
   async (req, res) => {
     try {
       const userId = req.user.id;
@@ -89,7 +90,8 @@ router.post('/apply',
 );
 
 // Get pending guide applications (Auditor/Admin only) - Compatible endpoint
-router.get('/pending', 
+router.get('/pending',
+  authenticateToken,
   requirePermission('verify_guides'),
   async (req, res) => {
     try {
@@ -125,8 +127,168 @@ router.get('/pending',
   }
 );
 
+// Get guide verifications list (Frontend compatibility endpoint)
+router.get(
+  '/verifications',
+  authenticateToken,
+  requirePermission('verify_guides'),
+  async (req, res) => {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+      const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+      const verifications = await prisma.guideVerification.findMany({
+        skip,
+        take: parseInt(limit, 10),
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              guide_status: true,
+            },
+          },
+        },
+        orderBy: { submitted_at: 'desc' },
+      });
+
+      const total = await prisma.guideVerification.count();
+
+      res.json({
+        success: true,
+        verifications,
+        pagination: {
+          page: parseInt(page, 10),
+          pages: Math.ceil(total / parseInt(limit, 10)),
+          total,
+        },
+      });
+    } catch (error) {
+      console.error('Get guide verifications error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch guide verifications',
+        code: 'FETCH_VERIFICATIONS_ERROR',
+      });
+    }
+  }
+);
+
+// Approve guide verification (Frontend compatibility endpoint)
+router.post(
+  '/verifications/:id/approve',
+  authenticateToken,
+  requirePermission('verify_guides'),
+  async (req, res) => {
+    try {
+      const verificationId = parseInt(req.params.id);
+      const moderatorId = req.user.id;
+      const { notes } = req.body;
+
+      const verification = await prisma.guideVerification.update({
+        where: { id: verificationId },
+        data: {
+          status: 'approved',
+          notes: notes || null,
+          reviewed_at: new Date(),
+          reviewed_by: moderatorId,
+        },
+      });
+
+      await prisma.user.update({
+        where: { id: verification.user_id },
+        data: {
+          role: 'guide',
+          guide_status: 'verified',
+          verified_by: moderatorId,
+          verified_at: new Date(),
+        },
+      });
+
+      await prisma.moderationLog.create({
+        data: {
+          content_type: 'guide_verification',
+          content_id: verificationId,
+          action: 'approved',
+          moderator_id: moderatorId,
+          notes: notes || 'Guide verification approved',
+        },
+      });
+
+      res.json({
+        success: true,
+        message: 'Guide verification approved successfully',
+        verification,
+      });
+    } catch (error) {
+      console.error('Approve guide verification error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to approve guide verification',
+        code: 'APPROVE_VERIFICATION_ERROR',
+      });
+    }
+  }
+);
+
+router.post(
+  '/verifications/:id/reject',
+  authenticateToken,
+  requirePermission('verify_guides'),
+  async (req, res) => {
+    try {
+      const verificationId = parseInt(req.params.id);
+      const moderatorId = req.user.id;
+      const { reason } = req.body;
+
+      if (!reason) {
+        return res.status(400).json({
+          success: false,
+          error: 'Rejection reason is required',
+          code: 'MISSING_REASON',
+        });
+      }
+
+      const verification = await prisma.guideVerification.update({
+        where: { id: verificationId },
+        data: {
+          status: 'rejected',
+          notes: reason,
+          reviewed_at: new Date(),
+          reviewed_by: moderatorId,
+        },
+      });
+
+      await prisma.moderationLog.create({
+        data: {
+          content_type: 'guide_verification',
+          content_id: verificationId,
+          action: 'rejected',
+          moderator_id: moderatorId,
+          notes: `Rejected: ${reason}`,
+        },
+      });
+
+      res.json({
+        success: true,
+        message: 'Guide verification rejected successfully',
+        verification,
+      });
+    } catch (error) {
+      console.error('Reject guide verification error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to reject guide verification',
+        code: 'REJECT_VERIFICATION_ERROR',
+      });
+    }
+  }
+);
+
 // Get specific guide verification details
 router.get('/verifications/:id',
+  authenticateToken,
   requirePermission('verify_guides'),
   async (req, res) => {
     try {
@@ -173,6 +335,7 @@ router.get('/verifications/:id',
 
 // Verify guide (Auditor/Admin only) - Compatible endpoint
 router.post('/:id/verify', 
+  authenticateToken,
   requirePermission('verify_guides'),
   async (req, res) => {
     try {
@@ -263,7 +426,8 @@ router.post('/:id/verify',
 );
 
 // Reject guide application (Auditor/Admin only) - Compatible endpoint
-router.post('/:id/reject', 
+router.post('/:id/reject',
+  authenticateToken,
   requirePermission('verify_guides'),
   async (req, res) => {
     try {
@@ -361,7 +525,8 @@ router.post('/:id/reject',
 );
 
 // Suspend guide (Auditor/Admin only)
-router.post('/:id/suspend', 
+router.post('/:id/suspend',
+  authenticateToken,
   requirePermission('verify_guides'),
   async (req, res) => {
     try {
@@ -466,7 +631,8 @@ router.get('/', async (req, res) => {
 });
 
 // Upload guide documents (Guide only)
-router.post('/documents', 
+router.post('/documents',
+  authenticateToken,
   requireRole(['guide']),
   async (req, res) => {
     try {

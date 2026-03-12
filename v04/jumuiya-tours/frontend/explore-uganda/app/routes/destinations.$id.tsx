@@ -1,2 +1,2 @@
-// Temporary alias to maintain compatibility with old route manifest
+// Correct: /destinations/:id should load the PUBLIC DETAIL PAGE
 export { default } from "./destinations/[id].tsx";

@@ -1,2 +1,2 @@
-// Temporary alias to maintain compatibility with old route manifest
+// Correct: /destinations/edit/:id should load the EDIT PAGE
 export { default } from "./destinations/edit/[id].tsx";

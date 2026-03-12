@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { moderationService } from "../services/moderation.service";
 import type { ModerationLog } from "../services/moderation.types";
 import ReviewPanel from "../components/moderation/review-panel";

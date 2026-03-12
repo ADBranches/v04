@@ -5,7 +5,7 @@ import { authenticateToken } from '../middleware/auth.js';
 import { requireRole } from '../middleware/role-middleware.js';
 import { PrismaClient } from '@prisma/client';
 
-// ⬇️ NEW: permission-based guards
+// ⬇️ Permission-based guards still used where appropriate
 import {
   requirePermission,
   requireAnyPermission,
@@ -14,13 +14,11 @@ import {
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// ✅ 1) Apply authentication for everything
+// ✅ Apply authentication for everything
 router.use(authenticateToken);
 
-// 2) Now all routes safely assume req.user exists
-
 // 🔹 Request a revision on content
-//   Uses fine-grained permission instead of broad roles
+// Fine-grained permission still makes sense here
 router.post(
   '/:id/request-revision',
   requirePermission('request_content_revisions'),
@@ -28,27 +26,30 @@ router.post(
 );
 
 // 🔹 Submit content for moderation (Guides only)
-//   This stays role-based, since it's about who can author content.
-router.post('/submit', requireRole(['guide']), ModerationController.submitContent);
+router.post(
+  '/submit',
+  requireRole(['guide']),
+  ModerationController.submitContent
+);
 
-// 🔹 Get content queue (alias for pending) – permission-based
+// 🔹 Get content queue (alias for pending)
 router.get(
   '/queue',
-  requirePermission('view_moderation_queue'),
+  requireRole(['admin', 'auditor']),
   ModerationController.getModerationQueue
 );
 
-// 🔹 List pending content – same permission as queue
+// 🔹 List pending content
 router.get(
   '/pending',
-  requirePermission('view_moderation_queue'),
+  requireRole(['admin', 'auditor']),
   ModerationController.getModerationQueue
 );
 
-// 🔹 Get single moderation request – allow anyone who can see queue OR review content
+// 🔹 Get single moderation request
 router.get(
   '/:id',
-  requireAnyPermission(['view_moderation_queue', 'review_content']),
+  requireRole(['admin', 'auditor']),
   async (req, res) => {
     try {
       const moderationId = parseInt(req.params.id, 10);
@@ -110,32 +111,30 @@ router.get(
   }
 );
 
-// 🔹 Approve content – permission-based
+// 🔹 Approve content
 router.post(
   '/:id/approve',
   requireAnyPermission(['approve_content', 'approve_destinations']),
   ModerationController.approveContent
 );
 
-// 🔹 Reject content – permission-based
+// 🔹 Reject content
 router.post(
   '/:id/reject',
   requireAnyPermission(['reject_content', 'reject_destinations']),
   ModerationController.rejectContent
 );
 
-// 🔹 Get moderation dashboard stats – tie to viewing moderation queue
+// 🔹 Get moderation dashboard stats
 router.get(
   '/dashboard/stats',
-  requirePermission('view_moderation_queue'),
+  requireRole(['admin', 'auditor']),
   async (req, res) => {
     try {
-      // Get pending destinations count
       const pendingDestinationsCount = await prisma.destination.count({
         where: { status: 'pending' },
       });
 
-      // Get pending guide applications count
       const pendingGuidesCount = await prisma.user.count({
         where: {
           guide_status: 'pending',
@@ -143,7 +142,6 @@ router.get(
         },
       });
 
-      // Get pending moderation logs count
       const pendingModerationCount = await prisma.moderationLog.count({
         where: { status: 'pending' },
       });
@@ -185,10 +183,10 @@ router.get(
   }
 );
 
-// 🔹 Get moderation logs – explicit permission
+// 🔹 Get moderation logs
 router.get(
   '/logs/activity',
-  requirePermission('view_moderation_logs'),
+  requireRole(['admin', 'auditor']),
   async (req, res) => {
     try {
       const { page = 1, limit = 20, type } = req.query;
@@ -236,10 +234,10 @@ router.get(
   }
 );
 
-// 🔹 Get content queue with filters – same queue permission
+// 🔹 Get content queue with filters
 router.get(
   '/queue/filtered',
-  requirePermission('view_moderation_queue'),
+  requireRole(['admin', 'auditor']),
   async (req, res) => {
     try {
       const { type, status = 'pending', page = 1, limit = 20 } = req.query;
@@ -262,10 +260,10 @@ router.get(
         orderBy: { created_at: 'asc' },
       });
 
-      // Fetch associated content for each log
       const queueWithContent = await Promise.all(
         moderationLogs.map(async (log) => {
           let content = null;
+
           if (log.content_type === 'destination') {
             content = await prisma.destination.findUnique({
               where: { id: log.content_id },

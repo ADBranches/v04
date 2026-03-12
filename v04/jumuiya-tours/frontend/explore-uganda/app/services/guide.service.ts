@@ -1,5 +1,6 @@
+// app/services/guide.service.ts
 import { apiService } from "./api-service";
-import { authService } from "./auth.service";
+import authService from "./auth.service";
 import type {
   Guide,
   GuideVerification,
@@ -8,8 +9,17 @@ import type {
   VerificationCredentials,
 } from "./guide.types";
 
+interface PendingGuidesResponse {
+  pending_applications?: any[];
+  pendingGuides?: any[];
+  guides?: any[];
+  success?: boolean;
+  message?: string;
+}
+
 class GuideService {
-  private baseUrl = `${import.meta.env.VITE_API_BASE || "http://localhost:5000/api"}/guides`;
+  // ✅ Use relative base path (central axios baseURL handles host/env)
+  private baseUrl = "/guides";
 
   private getAuthHeaders() {
     const token = authService.getToken?.();
@@ -29,20 +39,29 @@ class GuideService {
 
       return response;
     } catch (err: any) {
-      console.error("❌ getGuides error:", err);
-      throw new Error(err.message || "Failed to fetch guides");
+      if (err?.status === 404 || err?.code === "NOT_FOUND") {
+        console.info("ℹ️ Expected 404:", err.message);
+      } else {
+        console.error("❌ Unexpected error:", err);
+      }
+      throw err; // let enhanced ApiError propagate (status/code/message)
     }
   }
 
-
-  async getGuide(id: number): Promise<{ guide: Guide }> {
+  async getGuide(id: number): Promise<{ guide: Guide | null }> {
     try {
       return await apiService.get<{ guide: Guide }>(`${this.baseUrl}/${id}`, {
         headers: this.getAuthHeaders(),
       });
     } catch (err: any) {
-      console.error("❌ getGuide error:", err);
-      throw new Error(err.message || "Failed to fetch guide");
+      // Graceful expected 404 handling
+      if (err?.status === 404 || err?.code === "NOT_FOUND") {
+        console.info(`ℹ️ Guide with ID ${id} not found.`);
+        return { guide: null };
+      }
+
+      console.error("❌ getGuide unexpected error:", err);
+      throw err;
     }
   }
 
@@ -53,7 +72,7 @@ class GuideService {
       });
     } catch (err: any) {
       console.error("❌ getMyProfile error:", err);
-      throw new Error(err.message || "Failed to fetch guide profile");
+      throw err;
     }
   }
 
@@ -82,7 +101,7 @@ class GuideService {
       });
     } catch (err: any) {
       console.error("❌ createGuide error:", err);
-      throw new Error(err.message || "Failed to create guide");
+      throw err;
     }
   }
 
@@ -104,7 +123,7 @@ class GuideService {
       });
     } catch (err: any) {
       console.error("❌ updateGuide error:", err);
-      throw new Error(err.message || "Failed to update guide");
+      throw err;
     }
   }
 
@@ -117,7 +136,7 @@ class GuideService {
       );
     } catch (err: any) {
       console.error("❌ updateProfile error:", err);
-      throw new Error(err.message || "Failed to update profile");
+      throw err;
     }
   }
 
@@ -128,8 +147,12 @@ class GuideService {
         { headers: this.getAuthHeaders() }
       );
     } catch (err: any) {
-      console.error("❌ getVerification error:", err);
-      throw new Error(err.message || "Failed to fetch verification details");
+      if (err?.status === 404 || err?.code === "NOT_FOUND") {
+        console.info(`ℹ️ Verification for user ${userId} not found.`);
+      } else {
+        console.error("❌ getVerification error:", err);
+      }
+      throw err;
     }
   }
 
@@ -149,7 +172,63 @@ class GuideService {
       );
     } catch (err: any) {
       console.error("❌ submitVerification error:", err);
-      throw new Error(err.message || "Failed to submit verification");
+      throw err;
+    }
+  }
+
+  /**
+   * ✅ Auditor/Admin: load pending guide applications.
+   * NOTE: This assumes the backend exposes GET /guides/pending.
+   * If your backend route differs, adjust only this endpoint path.
+   */
+  async getPendingGuides(): Promise<PendingGuidesResponse> {
+    try {
+      return await apiService.get<PendingGuidesResponse>(`${this.baseUrl}/pending`, {
+        headers: this.getAuthHeaders(),
+      });
+    } catch (err: any) {
+      console.error("❌ getPendingGuides error:", err);
+      throw err;
+    }
+  }
+
+  /**
+   * ✅ Auditor/Admin: approve/verify a guide application.
+   * NOTE: This assumes the backend exposes POST /guides/:id/verify.
+   */
+  async verifyGuide(
+    id: number,
+    notes?: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      return await apiService.post<{ success: boolean; message: string }>(
+        `${this.baseUrl}/${id}/verify`,
+        { notes },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err: any) {
+      console.error("❌ verifyGuide error:", err);
+      throw err;
+    }
+  }
+
+  /**
+   * ✅ Auditor/Admin: reject a guide application.
+   * NOTE: This assumes the backend exposes POST /guides/:id/reject.
+   */
+  async rejectGuide(
+    id: number,
+    reason: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      return await apiService.post<{ success: boolean; message: string }>(
+        `${this.baseUrl}/${id}/reject`,
+        { reason },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err: any) {
+      console.error("❌ rejectGuide error:", err);
+      throw err;
     }
   }
 }

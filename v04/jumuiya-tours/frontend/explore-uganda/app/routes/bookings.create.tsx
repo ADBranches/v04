@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { bookingService } from "../services/booking.service";
 import { destinationService } from "../services/destination-service";
 // import type { Destination } from "../services/types/destinations";

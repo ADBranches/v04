@@ -1,7 +1,7 @@
 // routes/destinations/edit/[id].tsx
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { authService } from "../../../services/auth.service";
+import authService from "../../../services/auth.service";
 import { destinationService } from "../../../services/destination-service";
 import type { Destination, UpdateDestinationRequest } from "../../../services/destination.types";
 import { ROUTES } from "../../../config/routes-config"; // ⬅️ add this

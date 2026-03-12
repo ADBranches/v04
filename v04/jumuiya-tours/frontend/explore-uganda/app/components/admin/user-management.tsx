@@ -1,5 +1,6 @@
 // app/components/admin/user-management.tsx
 import React from "react";
+import adminService from "../../services/admin-service";
 
 interface User {
   id: number;
@@ -15,6 +16,16 @@ interface Props {
 }
 
 export default function UserManagement({ users, onRoleChange }: Props) {
+  const handleDelete = async (userId: number) => {
+    try {
+      await adminService.deleteUser(userId);
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      alert("Failed to delete user. Please try again.");
+    }
+  };
+
   if (users.length === 0)
     return (
       <div className="text-center text-gray-500 py-12">
@@ -34,6 +45,7 @@ export default function UserManagement({ users, onRoleChange }: Props) {
           <p className="text-sm text-gray-500 mb-2">
             Joined {new Date(user.created_at).toLocaleDateString()}
           </p>
+
           <select
             value={user.role}
             onChange={(e) => onRoleChange(user.id, e.target.value)}
@@ -44,6 +56,15 @@ export default function UserManagement({ users, onRoleChange }: Props) {
             <option value="auditor">Auditor</option>
             <option value="admin">Admin</option>
           </select>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={() => handleDelete(user.id)}
+              className="text-red-600 hover:underline"
+            >
+              Delete
+            </button>
+          </div>
         </div>
       ))}
     </div>

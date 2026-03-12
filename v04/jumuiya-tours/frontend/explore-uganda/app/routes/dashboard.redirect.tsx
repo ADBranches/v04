@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { ROUTES } from "../config/routes-config";
 
 export default function DashboardRedirect() {
@@ -17,13 +17,12 @@ export default function DashboardRedirect() {
     const user = authService.getCurrentUser();
 
     if (!user || !user.role) {
-      // No user → clear storage and redirect to login
-      localStorage.clear();
+      // No valid user → clear auth state and redirect to login
+      authService.logout();
       navigate(ROUTES.auth.login, { replace: true });
       return;
     }
 
-    // Redirect based on role
     switch (user.role) {
       case "admin":
         navigate(ROUTES.dashboards.admin, { replace: true });

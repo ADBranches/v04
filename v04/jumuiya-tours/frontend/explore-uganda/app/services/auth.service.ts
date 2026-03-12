@@ -89,8 +89,9 @@ class AuthService {
       });
 
       if (data.user && data.token) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("auth_token");
+        this.removeStorageItem("token");
+        this.removeStorageItem("auth_token");
+
         // Ensure is_verified_guide is set based on guide_status
         const userWithVerifiedFlag = {
           ...data.user,
@@ -366,14 +367,17 @@ class AuthService {
 
   // Event system for auth state changes
   private dispatchAuthEvent(type: string, user: User | null = null): void {
+    if (!this.isBrowser()) return;
+
     const event = new CustomEvent('authChange', {
-      detail: { 
-        type, 
-        user, 
+      detail: {
+        type,
+        user,
         isAuthenticated: this.isAuthenticated(),
         timestamp: new Date().toISOString()
       }
     });
+
     window.dispatchEvent(event);
   }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { destinationService } from "../services/destination-service";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import type { Destination, FilterParams } from "../services/destination.types";
 
 // ✅ Optional shared UI components (create if not existing)

@@ -52,10 +52,6 @@ app.use(cors({
 
 /* ───────────────────────  RATE LIMITING  ─────────────────────── */
 
-if (process.env.NODE_ENV === 'production') {
-  app.use('/api/', limiter);
-}
-
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
@@ -63,6 +59,10 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+if (process.env.NODE_ENV === 'production') {
+  app.use('/api/', limiter);
+}
 // app.use('/api/', limiter);
 
 const authLimiter = rateLimit({
@@ -102,6 +102,7 @@ app.use('/api/guides', guideRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/moderation', moderationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/dashboard/admin', adminRoutes);
 
 /* ───────────────────────  HEALTH & STATUS  ─────────────────────── */
 app.get('/api/health', async (req, res) => {

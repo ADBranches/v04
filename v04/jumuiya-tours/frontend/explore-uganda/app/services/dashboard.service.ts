@@ -6,10 +6,17 @@ class DashboardService {
   private baseUrl = API_BASE_URL;
 
   private getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem("token");
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      return {
+        "Content-Type": "application/json",
+      };
+    }
+
+    const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
+
     return {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
   }
 
@@ -56,6 +63,14 @@ class DashboardService {
     return this.handleResponse(response);
   }
 
+  async deleteDestination(id: number): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${this.baseUrl}/destinations/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
   async approveDestination(id: number, notes?: string) {
     const response = await fetch(`${this.baseUrl}/destinations/${id}/approve`, {
       method: "POST",
@@ -78,6 +93,40 @@ class DashboardService {
     const response = await fetch(`${this.baseUrl}/dashboard/admin/stats`, {
       headers: this.getAuthHeaders(),
     });
+    return this.handleResponse(response);
+  }
+
+  async getVerifications(params?: { limit?: number }): Promise<{ verifications: GuideVerification[] }> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+    const response = await fetch(
+      `${this.baseUrl}/guides/verifications?${queryParams.toString()}`,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
+
+    return this.handleResponse(response);
+  }
+
+  async approveVerification(id: number, notes?: string) {
+    const response = await fetch(`${this.baseUrl}/guides/verifications/${id}/approve`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ notes }),
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async rejectVerification(id: number, reason: string) {
+    const response = await fetch(`${this.baseUrl}/guides/verifications/${id}/reject`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+
     return this.handleResponse(response);
   }
 }

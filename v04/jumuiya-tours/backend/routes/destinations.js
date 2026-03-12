@@ -18,6 +18,7 @@ const router = express.Router();
 ========================================================= */
 
 // Get all destinations (public with optional auth)
+// ✅ PATCHED: supports status, created_by, includePending
 router.get(
   '/',
   optionalAuth,
@@ -30,88 +31,157 @@ router.get(
         difficulty,
         featured,
         search,
+        status,
+        created_by,
+        includePending,
         sort = 'created_at',
-        order = 'desc'
+        order = 'desc',
       } = req.query;
 
-      const skip = (page - 1) * limit;
+      const parsedPage = parseInt(page, 10);
+      const parsedLimit = parseInt(limit, 10);
+      const skip = (parsedPage - 1) * parsedLimit;
+
       const validSortFields = ['name', 'created_at', 'view_count', 'price_range'];
       const sortField = validSortFields.includes(sort) ? sort : 'created_at';
-      const sortOrder = order.toLowerCase() === 'asc' ? 'asc' : 'desc';
+      const sortOrder = String(order).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
-      let where = {};
+      const andConditions = [];
 
-      // Role-based visibility
+      // =========================================================
+      // Base visibility rules
+      // =========================================================
       if (!req.user) {
-        // Public users — only approved
-        where.status = 'approved';
+        // Public users can only see approved destinations
+        andConditions.push({ status: 'approved' });
       } else if (req.user.role === 'guide') {
-        // Guides — approved or self-created
-        where.OR = [
-          { status: 'approved' },
-          { created_by: req.user.id }
-        ];
+        // Guides can see approved destinations OR their own destinations
+        andConditions.push({
+          OR: [
+            { status: 'approved' },
+            { created_by: req.user.id },
+          ],
+        });
       } else if (['admin', 'auditor'].includes(req.user.role)) {
-        // Admin/Auditor — can see all
-        where = {};
+        // Admins/Auditors can see everything
       } else {
-        // Default fallback — approved only
-        where.status = 'approved';
+        // Default fallback
+        andConditions.push({ status: 'approved' });
       }
 
-      // Filters
-      if (region) where.region = region;
-      if (difficulty) where.difficulty_level = difficulty;
-      if (featured === 'true') where.featured = true;
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-          { location: { contains: search, mode: 'insensitive' } },
-          { short_description: { contains: search, mode: 'insensitive' } }
-        ];
+      // =========================================================
+      // Basic filters
+      // =========================================================
+      if (region) {
+        andConditions.push({ region });
       }
+
+      if (difficulty) {
+        andConditions.push({ difficulty_level: difficulty });
+      }
+
+      if (featured === 'true') {
+        andConditions.push({ featured: true });
+      }
+
+      if (search) {
+        andConditions.push({
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+            { location: { contains: search, mode: 'insensitive' } },
+            { short_description: { contains: search, mode: 'insensitive' } },
+          ],
+        });
+      }
+
+      // =========================================================
+      // created_by support
+      // =========================================================
+      if (created_by) {
+        const creatorId = parseInt(created_by, 10);
+
+        if (!Number.isNaN(creatorId)) {
+          if (['admin', 'auditor'].includes(req.user?.role)) {
+            // Admin/Auditor can filter by any creator
+            andConditions.push({ created_by: creatorId });
+          } else if (req.user?.id === creatorId) {
+            // Guides/users can only filter to themselves
+            andConditions.push({ created_by: creatorId });
+          }
+        }
+      }
+
+      // =========================================================
+      // status + includePending support
+      // =========================================================
+      if (status) {
+        if (['admin', 'auditor'].includes(req.user?.role)) {
+          // Admin/Auditor can request any status
+          andConditions.push({ status });
+        } else if (req.user?.role === 'guide') {
+          if (status === 'pending') {
+            // Guide can only see own pending destinations
+            andConditions.push({ status: 'pending' });
+            andConditions.push({ created_by: req.user.id });
+          } else if (status === 'approved') {
+            // Guide can explicitly request approved
+            andConditions.push({ status: 'approved' });
+          }
+        }
+      } else if (includePending === 'true') {
+        if (['admin', 'auditor'].includes(req.user?.role)) {
+          // Admin/Auditor: pending only
+          andConditions.push({ status: 'pending' });
+        } else if (req.user?.role === 'guide') {
+          // Guide: own pending only
+          andConditions.push({ status: 'pending' });
+          andConditions.push({ created_by: req.user.id });
+        }
+      }
+
+      const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
       const [destinations, total] = await Promise.all([
         prisma.destination.findMany({
           where,
           skip,
-          take: parseInt(limit),
+          take: parsedLimit,
           orderBy: { [sortField]: sortOrder },
           include: {
             creator: { select: { name: true } },
             bookings: { where: { status: 'completed' }, select: { id: true } },
-            reviews: { where: { status: 'active' }, select: { rating: true } }
-          }
+            reviews: { where: { status: 'active' }, select: { rating: true } },
+          },
         }),
-        prisma.destination.count({ where })
+        prisma.destination.count({ where }),
       ]);
 
-      const destinationsWithStats = destinations.map(dest => ({
+      const destinationsWithStats = destinations.map((dest) => ({
         ...dest,
         booking_count: dest.bookings.length,
         average_rating:
           dest.reviews.length > 0
             ? dest.reviews.reduce((sum, r) => sum + r.rating, 0) / dest.reviews.length
-            : null
+            : null,
       }));
 
       res.json({
         success: true,
         destinations: destinationsWithStats,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: parsedPage,
+          limit: parsedLimit,
           total,
-          pages: Math.ceil(total / limit)
-        }
+          pages: Math.ceil(total / parsedLimit),
+        },
       });
     } catch (error) {
       console.error('Get destinations error:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to fetch destinations',
-        code: 'FETCH_DESTINATIONS_ERROR'
+        code: 'FETCH_DESTINATIONS_ERROR',
       });
     }
   }
@@ -441,7 +511,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
 
 
-// ✅ (Retain all your remaining CRUD, approve/reject, feature/unfeature, delete, and admin stats routes unchanged below)
 /* =========================================================
    🧾 APPROVAL & REJECTION ROUTES
 ========================================================= */
@@ -884,6 +953,5 @@ async function checkDestinationAccess(user, destination) {
   // ✅ Regular users can only see approved
   return destination.status === 'approved';
 }
-
 
 export default router;

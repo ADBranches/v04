@@ -1,9 +1,8 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { guideService, type Guide } from "../services/guide.service";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import {
-  CheckBadgeIcon,
   MapPinIcon,
   LanguageIcon,
   CurrencyDollarIcon,
@@ -19,20 +18,40 @@ export default function GuideProfile() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let alive = true;
     if (!id) return;
+
     const fetchGuide = async () => {
+      setLoading(true);
+      setError("");
+
       try {
         const response = await guideService.getGuide(Number(id));
+        if (!alive) return;
         setGuide(response.guide);
       } catch (err: any) {
-        console.error(err);
+        if (!alive) return;
+
+        // ✅ Graceful split: 404 vs other errors
+        const status = err?.status || err?.response?.status;
+        if (status === 404 || err?.code === "NOT_FOUND") {
+          // Navigate to a friendly 404 page (configured in ROUTES)
+          navigate(ROUTES.errors.notFound, { replace: true });
+          return;
+        }
+
+        // Other errors (network/5xx/etc.): stay on page with a banner
+        console.warn("Guide fetch failed:", err);
         setError(err.message || "Failed to load guide details");
-        navigate(ROUTES.errors.notFound);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     };
+
     fetchGuide();
+    return () => {
+      alive = false;
+    };
   }, [id, navigate]);
 
   const getStatusColor = (status?: string) => {
@@ -68,6 +87,8 @@ export default function GuideProfile() {
   }
 
   if (!guide) {
+    // This will rarely render now because 404 navigates out,
+    // but keep a friendly fallback just in case.
     return (
       <div className="min-h-screen bg-safari-sand">
         <div className="container mx-auto px-4 py-12 text-center">
@@ -83,7 +104,7 @@ export default function GuideProfile() {
   return (
     <div className="min-h-screen bg-safari-sand">
       <div className="container mx-auto px-4 py-8">
-        {/* Error Alert */}
+        {/* Error Alert (non-404 issues) */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error}
@@ -222,7 +243,7 @@ export default function GuideProfile() {
               {/* Verification */}
               <div className="bg-gray-50 rounded-lg p-6">
                 <h3 className="font-semibold text-uganda-black mb-3">
-                  Verification & Credentials
+                  Verification &amp; Credentials
                 </h3>
                 <ul className="text-sm text-gray-600 space-y-2">
                   <li>✓ Verified Identity</li>

@@ -4,6 +4,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "react-router";
 import type { Route } from "./+types/root";
 import React, { useState, useEffect } from "react";
@@ -16,7 +17,8 @@ export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.gstatic.com" },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap",
+    href:
+      "https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap",
   },
 ];
 
@@ -24,6 +26,19 @@ export const links: Route.LinksFunction = () => [
 export default function Root() {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const handleMenuClick = () => setMenuOpen(!isMenuOpen);
+  const location = useLocation();
+
+  // Hide global header/footer on dashboard-like routes
+  // Matches your route config:
+  //   - /dashboard/* (dashboard.admin|auditor|guide|user + redirect)
+  //   - /admin/*     (admin analytics/users/roles)
+  //   - /auditor/*   (auditor dashboard & tools)
+  //   - /moderation/* (moderation queue/review)
+  const isDashboard =
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/auditor") ||
+    location.pathname.startsWith("/moderation");
 
   // --- ✅ Global unhandled rejection handler ---
   useEffect(() => {
@@ -31,7 +46,10 @@ export default function Root() {
       if (import.meta.env.MODE === "development") {
         console.warn("⚠️ Unhandled promise rejection:", event.reason);
       } else {
-        console.info("%c⚠️ Something went wrong (handled gracefully)", "color: orange");
+        console.info(
+          "%c⚠️ Something went wrong (handled gracefully)",
+          "color: orange"
+        );
       }
       event.preventDefault();
     };
@@ -50,11 +68,11 @@ export default function Root() {
       </head>
 
       <body className="min-h-screen flex flex-col relative">
-        {/* Header */}
-        <Header onMenuClick={handleMenuClick} />
+        {/* Header (hidden on dashboards) */}
+        {!isDashboard && <Header onMenuClick={handleMenuClick} />}
 
-        {/* ✅ Mobile Sidebar Overlay */}
-        {isMenuOpen && (
+        {/* ✅ Mobile Sidebar Overlay (only when header is shown) */}
+        {!isDashboard && isMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-50 flex bg-black bg-opacity-50">
             {/* Sidebar Drawer */}
             <div className="bg-white w-64 p-6 shadow-xl border-r border-gray-200 flex flex-col justify-between">
@@ -94,20 +112,17 @@ export default function Root() {
             </div>
 
             {/* Click outside area to close */}
-            <div
-              className="flex-1"
-              onClick={() => setMenuOpen(false)}
-            />
+            <div className="flex-1" onClick={() => setMenuOpen(false)} />
           </div>
         )}
 
         {/* Main Content */}
-        <main className="flex-1 pt-16">
+        <main className={`flex-1 ${!isDashboard ? "pt-16" : ""}`}>
           <Outlet />
         </main>
 
-        {/* Footer */}
-        <Footer />
+        {/* Footer (hidden on dashboards) */}
+        {!isDashboard && <Footer />}
 
         <ScrollRestoration />
         <Scripts />

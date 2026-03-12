@@ -152,58 +152,173 @@ router.put('/users/:id', authenticateToken, requireRole(['admin']), async (req, 
 });
 
 // Get platform statistics (Admin only)
+// Supports BOTH:
+//   - /api/admin/stats
+//   - /api/dashboard/admin/stats   (via extra mount in server.js)
 router.get('/stats', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
-    const userStats = await query(`
-      SELECT 
-        role,
-        COUNT(*) as count,
-        COUNT(CASE WHEN is_active = true THEN 1 END) as active_count
-      FROM users 
-      GROUP BY role
+    // Legacy grouped stats (kept for compatibility with any older consumers)
+    const [
+      userStats,
+      guideStats,
+      destinationStats,
+      bookingStats,
+      totalUsersResult,
+      totalDestinationsResult,
+      totalBookingsResult,
+      pendingDestinationsResult,
+      pendingGuidesResult,
+    ] = await Promise.all([
+      query(`
+        SELECT 
+          role,
+          COUNT(*)::int as count,
+          COUNT(CASE WHEN is_active = true THEN 1 END)::int as active_count
+        FROM users
+        GROUP BY role
+      `),
+
+      query(`
+        SELECT 
+          guide_status,
+          COUNT(*)::int as count
+        FROM users
+        WHERE role = 'guide'
+        GROUP BY guide_status
+      `),
+
+      query(`
+        SELECT 
+          status,
+          COUNT(*)::int as count
+        FROM destinations
+        GROUP BY status
+      `),
+
+      query(`
+        SELECT 
+          status,
+          COUNT(*)::int as count
+        FROM bookings
+        GROUP BY status
+      `),
+
+      query(`SELECT COUNT(*)::int AS total FROM users`),
+      query(`SELECT COUNT(*)::int AS total FROM destinations`),
+      query(`SELECT COUNT(*)::int AS total FROM bookings`),
+      query(`SELECT COUNT(*)::int AS total FROM destinations WHERE status = 'pending'`),
+      query(`SELECT COUNT(*)::int AS total FROM users WHERE role = 'guide' AND guide_status = 'pending'`),
+    ]);
+
+    // Try to detect a revenue-like column safely from the bookings table
+    const revenueColumnResult = await query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'bookings'
+        AND column_name IN ('total_amount', 'total_price', 'amount', 'price', 'subtotal')
+      ORDER BY CASE column_name
+        WHEN 'total_amount' THEN 1
+        WHEN 'total_price' THEN 2
+        WHEN 'amount' THEN 3
+        WHEN 'price' THEN 4
+        WHEN 'subtotal' THEN 5
+        ELSE 99
+      END
+      LIMIT 1
     `);
 
-    const guideStats = await query(`
-      SELECT 
-        guide_status,
-        COUNT(*) as count
-      FROM users 
-      WHERE role = 'guide'
-      GROUP BY guide_status
-    `);
+    let revenue = 0;
 
-    const destinationStats = await query(`
-      SELECT 
-        status,
-        COUNT(*) as count
-      FROM destinations 
-      GROUP BY status
-    `);
+    if (revenueColumnResult.rows.length > 0) {
+      const revenueColumn = revenueColumnResult.rows[0].column_name;
 
-    const bookingStats = await query(`
-      SELECT 
-        status,
-        COUNT(*) as count
-      FROM bookings 
-      GROUP BY status
-    `);
+      // Whitelist guard before interpolating the column name
+      const allowedRevenueColumns = [
+        'total_amount',
+        'total_price',
+        'amount',
+        'price',
+        'subtotal',
+      ];
+
+      if (allowedRevenueColumns.includes(revenueColumn)) {
+        const revenueResult = await query(
+          `SELECT COALESCE(SUM(${revenueColumn}), 0)::numeric AS revenue FROM bookings`
+        );
+
+        revenue = Number(revenueResult.rows[0]?.revenue || 0);
+      }
+    }
+
+    const totalUsers = Number(totalUsersResult.rows[0]?.total || 0);
+    const totalDestinations = Number(totalDestinationsResult.rows[0]?.total || 0);
+    const totalBookings = Number(totalBookingsResult.rows[0]?.total || 0);
+    const pendingDestinations = Number(pendingDestinationsResult.rows[0]?.total || 0);
+    const pendingGuideApprovals = Number(pendingGuidesResult.rows[0]?.total || 0);
+    const pendingApprovals = pendingDestinations + pendingGuideApprovals;
 
     res.json({
       success: true,
+
+      // ✅ New flat shape expected by dashboard.admin.tsx
+      totalUsers,
+      totalDestinations,
+      pendingApprovals,
+      totalBookings,
+      revenue,
+
+      // ✅ Old nested shape kept for backward compatibility
       stats: {
         users: userStats.rows,
         guides: guideStats.rows,
         destinations: destinationStats.rows,
         bookings: bookingStats.rows,
-        total_users: userStats.rows.reduce((sum, row) => sum + parseInt(row.count), 0),
-        total_destinations: destinationStats.rows.reduce((sum, row) => sum + parseInt(row.count), 0),
-        total_bookings: bookingStats.rows.reduce((sum, row) => sum + parseInt(row.count), 0)
-      }
+        total_users: totalUsers,
+        total_destinations: totalDestinations,
+        total_bookings: totalBookings,
+        pending_approvals: pendingApprovals,
+        revenue,
+      },
     });
   } catch (error) {
     console.error('Get stats error:', error);
     res.status(500).json({ error: 'Failed to fetch statistics' });
   }
 });
+
+router.get('/roles', authenticateToken, requireRole(['admin']), async (req, res) => {
+  const roles = ['admin', 'auditor', 'guide', 'user'];
+  res.json({ success: true, roles });
+});
+
+router.delete('/users/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
+  try {
+    await query(`DELETE FROM users WHERE id = $1`, [req.params.id]);
+    res.json({ success: true, message: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+router.get('/roles', authenticateToken, requireRole(['admin']), (req, res) => {
+  res.json({
+    success: true,
+    roles: ['admin', 'auditor', 'guide', 'user']
+  });
+});
+
+router.delete('/users/:id',
+  authenticateToken,
+  requireRole(['admin']),
+  async (req, res) => {
+    try {
+      const result = await query('DELETE FROM users WHERE id = $1', [req.params.id]);
+      res.json({ success: true, message: 'User deleted successfully' });
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to delete user' });
+    }
+  }
+);
 
 export default router;

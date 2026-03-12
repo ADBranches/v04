@@ -2,7 +2,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { destinationService } from "../../services/destination-service";
-import { authService } from "../../services/auth.service";
+import authService from "../../services/auth.service";
 import type { Destination } from "../../services/dashboard.types";
 import { StarIcon } from "@heroicons/react/24/solid";
 import { ROUTES } from "../../config/routes-config";
@@ -23,24 +23,70 @@ export default function DestinationDetail() {
 
   // Load destination
   useEffect(() => {
+    let alive = true;
+
     const fetchDestination = async () => {
       if (!id) return;
+
+      setLoading(true);
+      setMessage(null);
+
       try {
         const response = await destinationService.getDestination(Number(id));
+        if (!alive) return;
         setDestination(response.destination);
-      } catch {
-        if (typeof window !== "undefined") navigate(ROUTES.notFound);
+      } catch (err: any) {
+        if (!alive) return;
+
+        const isNotFound =
+          err?.status === 404 ||
+          err?.code === "NOT_FOUND" ||
+          err?.code === "DESTINATION_NOT_FOUND";
+
+        if (isNotFound) {
+          navigate(ROUTES.errors?.notFound || ROUTES.notFound, { replace: true });
+          return;
+        }
+
+        // Unexpected error → stay on page with a friendly message
+        setMessage({
+          type: "error",
+          text: err.message || "Failed to load destination details",
+        });
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     };
+
     fetchDestination();
+
+    return () => {
+      alive = false;
+    };
   }, [id, navigate]);
 
   const refresh = async () => {
     if (!id) return;
-    const response = await destinationService.getDestination(Number(id));
-    setDestination(response.destination);
+
+    try {
+      const response = await destinationService.getDestination(Number(id));
+      setDestination(response.destination);
+    } catch (err: any) {
+      const isNotFound =
+        err?.status === 404 ||
+        err?.code === "NOT_FOUND" ||
+        err?.code === "DESTINATION_NOT_FOUND";
+
+      if (isNotFound) {
+        navigate(ROUTES.errors?.notFound || ROUTES.notFound, { replace: true });
+        return;
+      }
+
+      setMessage({
+        type: "error",
+        text: err.message || "Failed to refresh destination details",
+      });
+    }
   };
 
   // Moderation handlers

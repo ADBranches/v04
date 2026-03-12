@@ -4,7 +4,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { guideService } from "../services/guide.service";
 import type { Guide, GuideFilterParams } from "../services/guide.types";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { ROUTES } from "../config/routes-config";
 
 // ✅ Shared UI components

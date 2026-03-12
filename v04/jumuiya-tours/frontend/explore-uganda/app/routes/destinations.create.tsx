@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { destinationService } from "../services/destination-service";
 import type { CreateDestinationRequest } from "../services/destination.types";
 import { ROUTES } from "../config/routes-config";

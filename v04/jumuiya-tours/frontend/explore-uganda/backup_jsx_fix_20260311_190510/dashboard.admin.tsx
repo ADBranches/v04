@@ -29,20 +29,15 @@ export default function AdminDashboard() {
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   useEffect(() => {
-    let alive = true;
-
     const user = authService.getCurrentUser();
+
     if (!authService.isAuthenticated() || user?.role !== "admin") {
       navigate(ROUTES.auth.login);
       return;
     }
 
-    if (alive) loadDashboardData();
-
-    return () => {
-      alive = false;
-    };
-  }, []); // run exactly once
+    loadDashboardData();
+  }, [navigate]);
 
   const loadDashboardData = async () => {
     setLoading(true);

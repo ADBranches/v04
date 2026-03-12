@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { guideService, type Guide } from "../services/guide.service";
 import type { GuideVerification } from "../services/guide.types";
 import { format } from "date-fns";

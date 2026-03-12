@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authService } from "../services/auth.service";
+import authService from "../services/auth.service";
 import { destinationService } from "../services/destination-service";
 import { bookingService } from "../services/booking.service";
 import { moderationService } from "../services/moderation.service";

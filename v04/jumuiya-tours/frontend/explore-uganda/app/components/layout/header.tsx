@@ -1,7 +1,8 @@
 // app/components/layout/header.tsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { authService } from "../../services/auth.service";
+import authService from "../../services/auth.service";
+import { ROUTES } from "../../config/routes-config";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,128 +10,73 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const [user, setUser] = useState<any>(null);
-  const [isHydrated, setIsHydrated] = useState(false); // ✅ prevents hydration mismatch
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // --- Hydration-safe initialization ---
   useEffect(() => {
-    setIsHydrated(true); // mark client render
+    setIsHydrated(true);
 
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
+    const syncUser = () => setUser(authService.getCurrentUser?.() || null);
+    syncUser();
 
-    // ✅ Listen for login/logout/profile updates
-    const handleAuthChange = (event: CustomEvent) => {
-      if (event.detail?.type === "logout") {
-        setUser(null);
-      } else if (event.detail?.user) {
-        setUser(event.detail.user);
-      } else {
-        setUser(authService.getCurrentUser());
-      }
-    };
-
-    window.addEventListener("authChange", handleAuthChange as EventListener);
+    window.addEventListener("authChange", syncUser as EventListener);
     return () => {
-      window.removeEventListener("authChange", handleAuthChange as EventListener);
+      window.removeEventListener("authChange", syncUser as EventListener);
     };
   }, []);
 
+  const displayName = useMemo(() => user?.name?.split?.(" ")?.[0] || "User", [user]);
+
   const handleLogout = () => {
     authService.logout();
-    window.location.href = "/auth/login";
+    window.location.href = ROUTES.auth.login;
   };
 
-  // --- 🧠 During SSR or before hydration ---
-  if (!isHydrated) {
-    return (
-      <header className="bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200 sticky top-0 z-[100]">
-        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-6">
-            <button
-              type="button"
-              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
-              onClick={onMenuClick}
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-
-            <Link
-              to="/"
-              className="text-xl font-bold text-uganda-black font-display"
-            >
-              Explore<span className="text-uganda-yellow">Uganda</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
-  // --- ✅ Hydrated Header ---
   return (
-    <header className="bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200 sticky top-0 z-[100]">
-      <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-        {/* Left: Logo + Nav */}
-        <div className="flex items-center space-x-6">
-          {/* Mobile Menu Button */}
+    <header className="sticky top-0 z-[100] border-b border-black/5 bg-white/90 backdrop-blur-xl shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+      <div className="flex h-[72px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-4 lg:gap-6">
           <button
             type="button"
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-gray-600 transition duration-300 hover:bg-uganda-yellow hover:text-uganda-black lg:hidden"
             onClick={onMenuClick}
+            aria-label="Open navigation menu"
           >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
 
-          {/* Logo */}
-          <Link
-            to="/"
-            className="text-xl font-bold text-uganda-black font-display"
-          >
-            Explore<span className="text-uganda-yellow">Uganda</span>
+          <Link to={ROUTES.home || "/"} className="group flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-uganda-black text-sm font-black text-uganda-yellow shadow-md transition duration-300 group-hover:bg-uganda-red group-hover:text-white">
+              JT
+            </span>
+            <div className="leading-tight">
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-gray-500">
+                Explore Uganda
+              </p>
+              <p className="text-xl font-black text-uganda-black">
+                Jumuiya<span className="text-uganda-yellow">Tours</span>
+              </p>
+            </div>
           </Link>
 
-          {/* Main Navigation */}
-          <nav className="hidden lg:flex space-x-6">
+          <nav className="hidden items-center gap-2 lg:flex">
             <Link
-              to="/destinations"
-              className="text-gray-700 hover:text-uganda-yellow transition-colors"
+              to={ROUTES.destinations.list}
+              className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 transition duration-300 hover:bg-black/5 hover:text-uganda-black"
             >
               Destinations
             </Link>
             <Link
-              to="/guides"
-              className="text-gray-700 hover:text-uganda-yellow transition-colors"
+              to={ROUTES.guides.list}
+              className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 transition duration-300 hover:bg-black/5 hover:text-uganda-black"
             >
               Guides
             </Link>
             {user && (
               <Link
-                to="/bookings"
-                className="text-gray-700 hover:text-uganda-yellow transition-colors"
+                to={ROUTES.bookings?.list || "/bookings"}
+                className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 transition duration-300 hover:bg-black/5 hover:text-uganda-black"
               >
                 My Bookings
               </Link>
@@ -138,61 +84,58 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </nav>
         </div>
 
-        {/* Right: Auth/User Section */}
-        <div className="flex items-center space-x-4 ml-auto">
+        <div className="ml-auto flex items-center gap-3">
           {!isHydrated ? (
-            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+            <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
           ) : user ? (
-            // ✅ Logged-in Dropdown
-            <>
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                <p className="text-xs text-gray-500 capitalize">{user.role}</p>
-              </div>
-              <div className="relative group">
-                <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="w-8 h-8 bg-uganda-yellow rounded-full flex items-center justify-center">
-                    <span className="text-uganda-black font-bold text-sm">
-                      {user.name?.charAt(0).toUpperCase() || "U"}
-                    </span>
-                  </div>
+            <div className="relative group">
+              <button className="flex items-center gap-3 rounded-full border border-black/5 bg-black/[0.03] px-3 py-2 transition duration-300 hover:bg-black/[0.05]">
+                <span className="hidden text-right sm:block">
+                  <span className="block text-sm font-semibold text-uganda-black">{displayName}</span>
+                  <span className="block text-xs capitalize text-gray-500">{user.role}</span>
+                </span>
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-uganda-yellow font-black text-uganda-black">
+                  {displayName.charAt(0).toUpperCase()}
+                </span>
+              </button>
+
+              <div className="invisible absolute right-0 mt-3 w-56 rounded-2xl border border-black/5 bg-white p-2 opacity-0 shadow-[0_25px_60px_rgba(15,23,42,0.12)] transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                <Link
+                  to={ROUTES.profile || "/profile"}
+                  className="block rounded-xl px-4 py-3 text-sm font-medium text-gray-700 transition duration-300 hover:bg-black/5 hover:text-uganda-black"
+                >
+                  Profile Settings
+                </Link>
+                <Link
+                  to={ROUTES.dashboards.base}
+                  className="block rounded-xl px-4 py-3 text-sm font-medium text-gray-700 transition duration-300 hover:bg-black/5 hover:text-uganda-black"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-red-600 transition duration-300 hover:bg-red-50"
+                >
+                  Sign out
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="py-1">
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Profile Settings
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                </div>
               </div>
-            </>
+            </div>
           ) : (
-            // ✅ Not logged in → show links immediately
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-3">
               <Link
-                to="/auth/login"
-                className="bg-uganda-yellow text-uganda-black px-4 py-2 rounded-lg font-african hover:bg-yellow-400 transition-colors"
+                to={ROUTES.auth.login}
+                className="rounded-full bg-uganda-yellow px-5 py-2.5 text-sm font-bold text-uganda-black transition duration-300 hover:-translate-y-0.5 hover:bg-uganda-black hover:text-white"
               >
                 Login
               </Link>
               <Link
-                to="/auth/register"
-                className="border border-uganda-yellow text-uganda-yellow px-4 py-2 rounded-lg font-african hover:bg-yellow-50 transition-colors"
+                to={ROUTES.auth.register}
+                className="rounded-full border border-uganda-yellow px-5 py-2.5 text-sm font-bold text-uganda-black transition duration-300 hover:-translate-y-0.5 hover:bg-uganda-yellow"
               >
                 Register
               </Link>
-          </div>
-        )}
-
+            </div>
+          )}
         </div>
       </div>
     </header>
